@@ -3,11 +3,15 @@ import os
 import re
 import sys
 
+cmpl_msg = ""
+run_msg = ""
+
 try:
     cmpl_msg = sys.argv[1]
     run_msg = sys.argv[2]
 except IndexError:
-    print("you should run tester from console")
+    exit("you should run tester from console")
+    
 EPS = 0.001
 
 def read_to_array(n: int, file: TextIOWrapper):
@@ -40,26 +44,28 @@ class Test:
     def run(self):
         result_filename = "test_output"
         result = True
-        os.system(f"{run_msg} {self.input_file} {result_filename}")
+        try:
+            os.system(f"{run_msg} {self.input_file} {result_filename}")
 
-        with open(self.input_file, "r") as input_file, \
-            open(self.output_file, "r") as output_file, \
-            open(result_filename, "r") as current_res:
-            
-            n = int(input_file.readline())
-            s = [0] * (n + 1)
+            with open(self.input_file, "r") as input_file, \
+                open(self.output_file, "r") as output_file, \
+                open(result_filename, "r") as current_res:
+                
+                n = int(input_file.readline())
+                s = [0] * (n + 1)
 
-            for i in range(n):
-                s[i] = list(map(float, input_file.readline().split()))
+                for i in range(n):
+                    s[i] = list(map(float, input_file.readline().split()))
 
-            x = read_to_array(n, output_file)
-            correct = read_to_array(n, current_res)
-            result = self.check(x, correct, n)
-
-        print(f"\tTest {self.num}:".ljust(10), "Passed" if result else "FAILED")
-        os.remove(result_filename)
-
-        return result
+                x = read_to_array(n, output_file)
+                correct = read_to_array(n, current_res)
+                result = self.check(x, correct, n)
+        except ValueError:
+            result = False
+        finally:
+            print(f"\tTest {self.num}:".ljust(10), "Passed" if result else "FAILED")
+            os.remove(result_filename)
+            return result
 
 
     def check(self, first: object, second: object, n: int):
