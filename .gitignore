@@ -1,0 +1,8 @@
+*.c
+.vscode
+__pycache__
+input.txt
+*.h
+try.py 
+testGenerator.py
+*.exe
