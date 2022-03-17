@@ -132,8 +132,10 @@ group4 = Group("Moderate Number", 69, 80)
 group5 = Group("Moderate Number", 81, 100)
 group6 = Group("No solution", 101, 110)
 group7 = Group("Many solutions", 111, 140)
-group8 = Group("Eps tests", 141, 146)
-groups = [group1, group2, group3, group4, group5, group6, group7, group8]
+group8 = Group("Eps tests", 141, 160)
+group9 = Group("Small floats tests", 161, 200)
+
+groups = [group1, group2, group3, group4, group5, group6, group7, group8, group9]
 
 tester = Tester(groups)
 tester.run()
