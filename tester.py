@@ -14,7 +14,7 @@ except IndexError:
     
 EPS = 0.001
 
-def read_to_array(n: int, file: TextIOWrapper):
+def read_to_array(n, file):
     array = []
     a = file.readline().strip(" \n")
 
@@ -30,12 +30,12 @@ def read_to_array(n: int, file: TextIOWrapper):
 
 
 class Test:
-    def __init__(self, num: int):
+    def __init__(self, num):
         # this is a constructor for an existing Test
         # if you want to generate new one, use testGenerator
         self.num = num
 
-    def run(self, group_name: str):
+    def run(self, group_name):
         result_filename = "test_output"
         result = True
         try:
@@ -65,7 +65,7 @@ class Test:
             return result
 
 
-    def check(self, first: object, second: object, n: int):
+    def check(self, first, second, n):
         if type(first) != type(second):
             return False
         
@@ -78,7 +78,7 @@ class Test:
         return True
 
 class Group:
-    def __init__(self, name: str, frm: int, to: int):
+    def __init__(self, name, frm, to):
         self.tests = []
         for i in range(frm, to + 1):
             self.tests.append(Test(i))
@@ -88,7 +88,7 @@ class Group:
         print(f"\n{self.name} Tests:\n")
 
 class Tester:
-    def __init__(self, groups: list[Group]):
+    def __init__(self, groups):
         self.groups = groups
     
     def run(self):
@@ -109,7 +109,7 @@ class Tester:
         print()
 
 
-def check_solution(n: int, coef: list[float], var: list[float]):
+def check_solution(n, coef, var):
     res = 0
     for i in range(n):
         for j in range(n):
