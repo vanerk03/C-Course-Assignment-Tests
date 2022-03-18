@@ -30,25 +30,22 @@ def read_to_array(n: int, file: TextIOWrapper):
 
 
 class Test:
-    def __init__(self, num: int, input_file=None, output_file=None):
+    def __init__(self, num: int):
         # this is a constructor for an existing Test
         # if you want to generate new one, use testGenerator
         self.num = num
-        if input_file is None:
-            self.input_file = f"tests/test{num}.in"
-            self.output_file =  f"tests/test{num}.out"
-        else:
-            self.input_file = input_file
-            self.output_file = output_file
 
-    def run(self):
+    def run(self, group_name: str):
         result_filename = "test_output"
         result = True
         try:
-            os.system(f"{run_msg} {self.input_file} {result_filename}")
+            input_filename = f"tests/{group_name}/test{self.num}.in"
+            output_filename = f"tests/{group_name}/test{self.num}.out"
 
-            with open(self.input_file, "r") as input_file, \
-                open(self.output_file, "r") as output_file, \
+            os.system(f"{run_msg} \"{input_filename}\" {result_filename}")
+
+            with open(input_filename, "r") as input_file, \
+                open(output_filename, "r") as output_file, \
                 open(result_filename, "r") as current_res:
                 
                 n = int(input_file.readline())
@@ -100,7 +97,7 @@ class Tester:
         for group in self.groups:
             group.log()
             for test in group.tests:
-                if test.run():
+                if test.run(group.name):
                     success += 1
                 count += 1
         print()
@@ -132,8 +129,8 @@ group4 = Group("Moderate Number", 69, 80)
 group5 = Group("Moderate Number", 81, 100)
 group6 = Group("No solution", 101, 110)
 group7 = Group("Many solutions", 111, 140)
-group8 = Group("Eps tests", 141, 160)
-group9 = Group("Small floats tests", 161, 200)
+group8 = Group("Eps", 141, 160)
+group9 = Group("Small floats", 161, 200)
 group10 = Group("Combining large and small numbers", 201, 210)
 
 groups = [group1, group2, group3, group4, group5, group6, group7, group8, group9, group10]
