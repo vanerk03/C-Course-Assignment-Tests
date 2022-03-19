@@ -143,7 +143,7 @@ group7 = Group("Many solutions", 111, 140)
 group8 = Group("Eps", 141, 160)
 group9 = Group("Small floats", 161, 200)
 group10 = Group("Combining large and small numbers", 201, 210)
-group11 = Group("Error Handling", 211, 214)
+group11 = Group("Error Handling", 211, 212)
 
 groups = [group1, group2, group3, group4, group5, group6, group7, group8, group9, group10, group11]
 
