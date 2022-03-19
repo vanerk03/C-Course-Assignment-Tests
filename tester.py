@@ -1,7 +1,7 @@
-from io import TextIOWrapper
 import os
 import re
 import sys
+from subprocess import call
 
 cmpl_msg = ""
 run_msg = ""
@@ -41,9 +41,18 @@ class Test:
         try:
             input_filename = f"tests/{group_name}/test{self.num}.in"
             output_filename = f"tests/{group_name}/test{self.num}.out"
+            code_filename = f"tests/{group_name}/test{self.num}.code"
 
-            os.system(f"{run_msg} \"{input_filename}\" {result_filename}")
-
+            result_code = call(f"{run_msg} \"{input_filename}\" {result_filename}")
+            
+            if result_code != 0:
+                try:
+                    with open(code_filename) as code_file:
+                        code = int(code_file.read()) 
+                        return result_code == code       
+                except IOError:
+                    return False
+                
             with open(input_filename, "r") as input_file, \
                 open(output_filename, "r") as output_file, \
                 open(result_filename, "r") as current_res:
@@ -61,8 +70,10 @@ class Test:
             result = False
         finally:
             print(f"\tTest {self.num}:".ljust(10), "Passed" if result else "FAILED")
-            os.remove(result_filename)
-            return result
+            try: 
+                os.remove(result_filename)
+            finally:
+                return result
 
 
     def check(self, first, second, n):
@@ -100,7 +111,7 @@ class Tester:
                 if test.run(group.name):
                     success += 1
                 count += 1
-        print()
+        print("\n   " + "-" * 28 + "\n")
         if success == count:
             print("\tTests: PASSED")
         else:
@@ -132,8 +143,9 @@ group7 = Group("Many solutions", 111, 140)
 group8 = Group("Eps", 141, 160)
 group9 = Group("Small floats", 161, 200)
 group10 = Group("Combining large and small numbers", 201, 210)
+group11 = Group("Error Handling", 211, 214)
 
-groups = [group1, group2, group3, group4, group5, group6, group7, group8, group9, group10]
+groups = [group1, group2, group3, group4, group5, group6, group7, group8, group9, group10, group11]
 
 tester = Tester(groups)
 tester.run()
