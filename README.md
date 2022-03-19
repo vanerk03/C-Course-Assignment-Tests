@@ -14,4 +14,8 @@
 
 итого команда должна выглядить так:
 
-`python tester.py "gcc main.c -o main" .\main`
+Для windows:
+`python tester.py "gcc main.c -o main" ".\main"`
+
+Для MacOS: 
+`python3 tester.py "gcc -o main main.c" "./main"` 
