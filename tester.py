@@ -143,9 +143,12 @@ group7 = Group("Many solutions", 111, 140)
 group8 = Group("Eps", 141, 160)
 group9 = Group("Small floats", 161, 200)
 group10 = Group("Combining large and small numbers", 201, 210)
-group11 = Group("Error Handling", 211, 212)
+group11 = Group("Error Handling", 211, 214)
+group12 = Group("Float No solution", 213, 284)
 
-groups = [group1, group2, group3, group4, group5, group6, group7, group8, group9, group10, group11]
+groups = [group1, group2, group3, group4,
+          group5, group6, group7, group8, 
+          group9, group10, group11, group12]
 
 tester = Tester(groups)
 tester.run()
