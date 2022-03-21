@@ -3,23 +3,26 @@ import re
 import sys
 from pathlib import Path
 from subprocess import call, run
+from compile import compile_program
 
-# INIT
+# ----INIT----
+# parsing args, write on module argparse
 try:
-    cmpl_name = sys.argv[1]
+    compiler = sys.argv[1]
     program_name = sys.argv[2]
 except IndexError:
     exit("you should write options: compiler_name program_name")
 
 working_directory = Path(os.getcwd())
 testing_directory = Path(__file__).parent
-run_msg = testing_directory.joinpath("test")
-print(run_msg)
-run(f'{cmpl_name} -o {run_msg} {working_directory.joinpath(program_name)}')
-if not testing_directory.joinpath('test.exe').is_file():
-    exit('cant compile program')
+
+program_path = testing_directory.joinpath("program.exe")
 cases_directory = testing_directory.joinpath('tests')
 
+compile_program(compiler, working_directory.joinpath(program_name), program_path)
+
+
+# in future move to special file
 EPS = 0.001
 
 def read_to_array(n, file):
@@ -44,14 +47,14 @@ class Test:
         self.num = num
 
     def run(self, group_name):
-        result_filename = testing_directory .joinpath("test_output")
+        result_filename = testing_directory.joinpath("test_output")
         result = True
         try:
             input_filename = f"{cases_directory}/{group_name}/test{self.num}.in"
             output_filename = f"{cases_directory}/{group_name}/test{self.num}.out"
             code_filename = f"{cases_directory}/{group_name}/test{self.num}.code"
 
-            result_code = call(f"{run_msg} \"{input_filename}\" {result_filename}")
+            result_code = call(f"{program_path} \"{input_filename}\" {result_filename}")
 
             if result_code != 0:
                 try:
