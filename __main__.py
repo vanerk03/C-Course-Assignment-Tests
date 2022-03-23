@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 from subprocess import call, run
 from compile import compile_program
+from color_log import RED, GREEN
 
 # ----INIT----
 # parsing args, write on module argparse
@@ -53,8 +54,7 @@ class Test:
             input_filename = f"{cases_directory}/{group_name}/test{self.num}.in"
             output_filename = f"{cases_directory}/{group_name}/test{self.num}.out"
             code_filename = f"{cases_directory}/{group_name}/test{self.num}.code"
-
-            result_code = call(f"{program_path} \"{input_filename}\" {result_filename}")
+            result_code = call([program_path, input_filename, result_filename])  # todo timeout
 
             if result_code != 0:
                 try:
@@ -79,8 +79,11 @@ class Test:
                 result = self.check(x, correct, n)
         except ValueError:
             result = False
+        except Exception as e:
+            print("Error: ", e)
+            result = False
         finally:
-            print(f"\tTest {self.num}:".ljust(10), "Passed" if result else "FAILED")
+            print(f"\tTest {self.num}:".ljust(10), GREEN("Passed") if result else RED("FAILED"))
             try:
                 os.remove(result_filename)
             finally:
