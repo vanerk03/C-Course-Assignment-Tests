@@ -22,6 +22,8 @@ cases_directory = testing_directory.joinpath('cases')
 
 compile_program(compiler, working_directory.joinpath(program_name), program_path)
 
+# todo stdio.error
+# todo
 
 # in future move to special file
 # EPS = 0.001
