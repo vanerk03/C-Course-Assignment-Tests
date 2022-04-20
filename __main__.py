@@ -15,11 +15,6 @@ working_directory = Path(os.getcwd())
 testing_directory = Path(__file__).parent
 
 program_path = testing_directory.joinpath("program.exe")
-cases_directory = testing_directory.joinpath('tests')
+cases_directory = testing_directory.joinpath('cases')
 
 compile_program(compiler, working_directory.joinpath(program_name), program_path)
-
-
-# in future move to special file
-EPS = 0.001
-
