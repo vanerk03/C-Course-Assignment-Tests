@@ -1,17 +1,33 @@
 from __future__ import annotations
 
 import os
+import subprocess
 from abc import ABC, abstractmethod
 from pathlib import Path
 
+import color_log
+
 main_name = "Тест 3его дз"
-stop_after = 1
+stop_after = 2
 
 """
 Special classes
 """
 working_directory = Path(os.getcwd())
 program_name: Path
+current_error = 0
+
+
+class StopExc(Exception):
+    pass
+
+
+class TrueExc(Exception):
+    pass
+
+
+class ErrorExc(Exception):
+    pass
 
 
 class Case:
@@ -58,21 +74,23 @@ class Group(ABC):
         """
         This method:
 
-        1. Create input.txt output.txt.
+        1. Create input.txt output.txt, don't write.
         2. Call _run().
-        3. Catch exceptions and wrongs. After 10 failed test will be stopped.
+        3. Catch exceptions and wrongs. After 'stop_after' failed test will be stopped.
         """
+        global current_error
         print(" " * self.level + self.name)
         for ent in self.entities:
             if issubclass(type(ent), Case):
-                inp = working_directory.joinpath("inp.txt")
-                out = working_directory.joinpath("out.txt")
-                with inp.open("w"), out.open("w"):
-                    pass
+                inp = working_directory.joinpath(f"inp{current_error}.txt")
+                out = working_directory.joinpath(f"out{current_error}.txt")
                 try:
                     self._run_case(ent, inp, out)
-                except:
-                    print(" " * self.level + f"Wrong actual: {ent.out} expected: {ent.out}")
+                except ErrorExc:
+                    print(color_log.RED(f"Wrong. Test save in {inp} / {out}"))
+                    current_error += 1
+                    if current_error == stop_after:
+                        exit()
 
             elif issubclass(ent, Group):
                 _ent = ent(level = self.level + 1)
@@ -106,11 +124,29 @@ Personal classes
 """
 
 
+class SortCase(Case):
+    def __init__(self, type: str, mode: bool, data, data_true):
+        data_inp = "\n".join(map(str, data))
+        inp = f"{type}\n" \
+              f"{'ascending' if mode else 'descending'}\n" \
+              f"{len(data)}\n" \
+              f"{data_inp}"
+        super().__init__(inp, "\n".join(map(str, data_true)))
+
+
 class ValidGroup(Group, ABC):
     def _run_case(self, case: Case, inp: Path, out: Path):
-        # todo
-        print(f'run {case.inp} {case.out}')
-        return True
+        with inp.open("w") as inp_f, out.open("w") as out_f:
+            inp_f.write(case.inp)
+
+        subprocess.call(['python', str(program_name), str(inp), str(out)])
+
+        with out.open("r") as out_f:
+            ot = out_f.read()
+            if ot == case.out:
+                return True
+            else:
+                raise ErrorExc
 
 
 class TestIntLow(ValidGroup):
@@ -120,10 +156,14 @@ class TestIntLow(ValidGroup):
 
     def load(self):
         self.entities = [
-            Case('123', '123'),
-            Case('123', '123'),
-            Case('123', '123'),
-            Case('123', '123'),
+            SortCase('int', True, [1, 10, 100], [1, 10, 100]),
+            SortCase('int', True, [3, 2, 2, 2, 1], [1, 2, 2, 2, 3]),
+
+            SortCase('int', False, [1, 1, 1], [1, 1, 1]),
+            SortCase('int', True, [1, 1, 1], [1, 1, 1]),
+
+            SortCase('int', True, [1, 1, 1, 3], [1, 1, 1, 3]),
+            SortCase('int', False, [1, 1, 1, 3], [3, 1, 1, 1]),
         ]
 
 
@@ -135,9 +175,9 @@ class TestInt(ValidGroup):
 
     def load(self):
         self.entities = [
-            Case('123', '123'),
-            Case('123', '123'),
-            Case('123', '123'),
-            Case('123', '123'),
+            SortCase('int', True, [1, 2, 3], [1, 2, 3]),
+            SortCase('int', True, [3, 2, 1], [1, 2, 3]),
+            SortCase('int', False, [1, 2, 3], [3, 2, 1]),
+            SortCase('int', False, [3, 2, 1], [3, 2, 1]),
             TestIntLow
         ]
