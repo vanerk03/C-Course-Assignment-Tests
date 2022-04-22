@@ -1,20 +1,18 @@
 import os
 import sys
 from pathlib import Path
-from compile import compile_program
+import collect
 
 # ----INIT----
 # parsing args, write on module argparse
+program_name = "main"
 try:
-    compiler = sys.argv[1]
-    program_name = sys.argv[2]
+    program_name = sys.argv[1]
 except IndexError:
-    exit("you should write options: compiler_name program_name")
+    exit("you should write options: program_name")
 
 working_directory = Path(os.getcwd())
 testing_directory = Path(__file__).parent
 
-program_path = testing_directory.joinpath("program.exe")
-cases_directory = testing_directory.joinpath('cases')
-
-compile_program(compiler, working_directory.joinpath(program_name), program_path)
+collect.program_name = working_directory.joinpath(program_name)
+collect.main_group.run()
