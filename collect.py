@@ -1,5 +1,5 @@
 from __future__ import annotations
-
+from generate import *
 import os
 import subprocess
 from abc import ABC, abstractmethod
@@ -31,10 +31,23 @@ class ErrorExc(Exception):
 
 
 class Case:
-    def __init__(self, inp: str, out: str):
-        self.inp = inp
-        self.out = out
+    def __init__(self, data: list[int | float | tuple[str, str, int]], is_reversed: bool, type: DataFlag):
+        self.data = data
+        self.is_reversed = is_reversed
+        self.out = answer(data, is_reversed)
+        self.type = type
 
+    def __repr__(self):
+        # this should be probably removed
+        if self.type == "phonebook":
+            string = "\n".join(map(lambda x: " ".join(map(str, x)), self.data))
+        else:
+            string = "\n".join(map(str, self.data))
+
+        return  f"{self.type}\n" \
+                f"{'ascending' if self.is_reversed else 'descending'}\n" \
+                f"{len(self.data)}\n" \
+                f"{string}"
 
 class Group(ABC):
     """
@@ -124,23 +137,24 @@ Personal classes
 """
 
 
-class SortCase(Case):
-    def __init__(self, type: str, mode: bool, data, data_true):
-        data_inp = "\n".join(map(str, data))
-        inp = f"{type}\n" \
-              f"{'ascending' if mode else 'descending'}\n" \
-              f"{len(data)}\n" \
-              f"{data_inp}"
-        super().__init__(inp, "\n".join(map(str, data_true)))
+# class SortCase(Case):
+#     def __init__(self, type: DataFlag, is_reversed: bool, data: list):
+#         data_inp = "\n".join(map(str, data))
+#         # inp = f"{type}\n" \
+#         #       f"{'ascending' if mode else 'descending'}\n" \
+#         #       f"{len(data)}\n" \
+#         #       f"{data_inp}"
+#         super().__init__(data, is_reversed)
 
 
 class ValidGroup(Group, ABC):
     def _run_case(self, case: Case, inp: Path, out: Path):
         with inp.open("w") as inp_f, out.open("w") as out_f:
-            inp_f.write(case.inp)
+            inp_f.write(str(case))
 
         subprocess.call(['python', str(program_name), str(inp), str(out)])
-
+        answer_data = out.open("r").readlines()
+        # here output data should be read then invoke generate.answer method and compare
         with out.open("r") as out_f:
             ot = out_f.read()
             if ot == case.out:
@@ -149,23 +163,51 @@ class ValidGroup(Group, ABC):
                 raise ErrorExc
 
 
-class TestIntLow(ValidGroup):
+class ReadableTests(ValidGroup):
     @property
     def name(self):
         return "Low Numbers"
 
     def load(self):
         self.entities = [
-            SortCase('int', True, [1, 10, 100], [1, 10, 100]),
-            SortCase('int', True, [3, 2, 2, 2, 1], [1, 2, 2, 2, 3]),
-
-            SortCase('int', False, [1, 1, 1], [1, 1, 1]),
-            SortCase('int', True, [1, 1, 1], [1, 1, 1]),
-
-            SortCase('int', True, [1, 1, 1, 3], [1, 1, 1, 3]),
-            SortCase('int', False, [1, 1, 1, 3], [3, 1, 1, 1]),
+            Case([1, 10, 100], True, DataFlag.INT)
+            # Case('float', True, [3.3, 2.2, 2.2, 2.2, 1.1], [1.1, 2.2, 2.2, 2.2, 3.3]),
+            #
+            # Case('phonebook', False, [1, 1, 1], [1, 1, 1]),
+            # Case('int', True, [1, 1, 1], [1, 1, 1]),
+            #
+            # Case('int', True, [1, 1, 1, 3], [1, 1, 1, 3]),
+            # Case('int', False, [1, 1, 1, 3], [3, 1, 1, 1]),
         ]
 
+
+# class TestIntLow(ValidGroup):
+#     @property
+#     def name(self):
+#         return "Low Numbers"
+#
+#     def load(self):
+#         self.entities = [
+#             SortCase('int', True, [1, 10, 100], [1, 10, 100]),
+#             SortCase('int', True, [3, 2, 2, 2, 1], [1, 2, 2, 2, 3]),
+#
+#             SortCase('int', False, [1, 1, 1], [1, 1, 1]),
+#             SortCase('int', True, [1, 1, 1], [1, 1, 1]),
+#
+#             SortCase('int', True, [1, 1, 1, 3], [1, 1, 1, 3]),
+#             SortCase('int', False, [1, 1, 1, 3], [3, 1, 1, 1]),
+#         ]
+
+
+class RandomIntTests(ValidGroup):
+    @property
+    def name(self):
+        return "Low Numbers"
+
+    def load(self):
+        flag = DataFlag.INT
+        is_reversed = False
+        self.entities = [generate_case(flag, is_reversed) for _ in range(100)]
 
 @is_main_group
 class TestInt(ValidGroup):
@@ -181,3 +223,6 @@ class TestInt(ValidGroup):
             SortCase('int', False, [3, 2, 1], [3, 2, 1]),
             TestIntLow
         ]
+
+        # for i in range(100):
+        #     self.entities.append(SortCase('int', False, , ))
