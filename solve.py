@@ -1,5 +1,6 @@
 from generate import DataFlag, answer
 
+
 def solve(path, flag: DataFlag, is_reversed: bool):
     fl = open(path, "r")
     
@@ -9,6 +10,8 @@ def solve(path, flag: DataFlag, is_reversed: bool):
         ot = [float(x.rstrip("\n")) for x in fl.readlines()]
     elif flag == DataFlag.PHONEBOOK:
         ot = [x.rstrip("\n") for x in fl.readlines()]
+        if ot[-1] == '\n':
+            ot = ot[:-1]
         tmp = []
         for x in ot:
             a, b, c, num = x.split()
