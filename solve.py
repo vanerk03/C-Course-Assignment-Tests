@@ -21,4 +21,4 @@ def solve(path, flag: DataFlag, is_reversed: bool):
     else:
         raise ValueError("this flag doesn't exits") 
     
-    return sorted(ot, reverse=is_reversed)
+    return ot

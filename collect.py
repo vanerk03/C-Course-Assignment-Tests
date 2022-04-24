@@ -45,7 +45,7 @@ class Case:
             string = "\n".join(map(str, self.data))
 
         return  f"{self.type.value}\n" \
-                f"{'ascending' if self.is_reversed else 'descending'}\n" \
+                f"{'descending' if self.is_reversed else 'ascending'}\n" \
                 f"{len(self.data)}\n" \
                 f"{string}"
 
@@ -147,6 +147,7 @@ class ValidGroup(Group, ABC):
             inp_f.write(str(case))
 
         subprocess.call([program_name, str(inp), str(out)])
+        # print(case.out, solve(out, case.type, case.is_reversed))
         if case.out == solve(out, case.type, case.is_reversed):
             return True
         else:
