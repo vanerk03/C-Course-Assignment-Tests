@@ -92,7 +92,8 @@ class Group(ABC):
         3. Catch exceptions and wrong answerss. After 'stop_after' failed test will be stopped.
         """
         global current_error
-        print("   " * self.level + self.name)
+        print("   " * self.level + self.name + ":")
+
         for ent in self.entities:
             if issubclass(type(ent), Case):
                 inp = working_directory.joinpath(f"inp{current_error}.txt")
@@ -112,7 +113,7 @@ class Group(ABC):
                 _ent.load()
                 _ent.run()
 
-            
+        print(color_log.GREEN("   " * (self.level + 1) + "Passed\n"))
 
 class MainGroup(Group):
     @property
