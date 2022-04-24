@@ -15,9 +15,9 @@ class DataFlag(enum.Enum):
     PHONEBOOK = "phonebook"
 
 
-def generate_data(flag: DataFlag):
-    n = random.randint(1, 20)
-    lst = [generate_element(flag) for _ in range(n)]
+def generate_data(flag: DataFlag, length: int):
+    # n = random.randint(1, 20)
+    lst = [generate_element(flag) for _ in range(length)]
     return lst
 
 
@@ -25,7 +25,7 @@ def generate_element(flag: DataFlag):
     if flag == DataFlag.INT:
         return random.randint(-2147483648, 2147483647)
     elif flag == DataFlag.FLOAT:
-        return random.random()
+        return random.randint(1, 1000000) / (10 ** random.randint(0, 6))
     elif flag == DataFlag.PHONEBOOK:
         return (random.choice(WORD_LIST), random.choice(WORD_LIST),
                 random.choice(WORD_LIST), random.randint(1, 10 ** 11 - 1))

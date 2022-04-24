@@ -4,7 +4,7 @@ import os
 import subprocess
 from abc import ABC, abstractmethod
 from pathlib import Path
-
+from solve import solve
 import color_log
 
 main_name = "Тест 3его дз"
@@ -39,7 +39,7 @@ class Case:
 
     def __repr__(self):
         # this should be probably removed
-        if self.type == "phonebook":
+        if self.type == DataFlag.PHONEBOOK:
             string = "\n".join(map(lambda x: " ".join(map(str, x)), self.data))
         else:
             string = "\n".join(map(str, self.data))
@@ -143,40 +143,38 @@ class ValidGroup(Group, ABC):
             inp_f.write(str(case))
 
         subprocess.call([program_name, str(inp), str(out)])
+        if case.out == solve(out, case.type, case.is_reversed):
+            return True
+        else:
+            raise ErrorExc
 
-        # here output data should be read then invoke generate.answer method and compare
-        with out.open("r") as out_f:
-            ans = []
-            ot = [x.rstrip("\n") for x in out_f.readlines()]
-            
-            if case.type == DataFlag.INT:
-                ans = answer(map(int, ot), case.is_reversed)
+@is_main_group
+class MainTestGroup(ValidGroup):
+    @property
+    def name(self):
+        return "Testing:"
 
-            elif case.type == DataFlag.FLOAT:
-                ans = answer(map(float, ot), case.is_reversed)
-
-            elif case.type == DataFlag.PHONEBOOK:
-                raise Exception("this is not supported yet")
-            print(ans)
-            print(case.out)
-            if ans == case.out:
-                return True
-            else:
-                raise ErrorExc
-
+    def load(self):
+        self.entities = [
+            ReadableTests,
+            RandomIntTests,
+            RandomFloatTests,
+            RandomFloatReversedTests,
+            RandomPhonebookReversedTests
+        ]
 
 class ReadableTests(ValidGroup):
     @property
     def name(self):
-        return "Low Numbers"
+        return "Readable Tests"
 
     def load(self):
         self.entities = [
             Case([1, 10, 100], True, DataFlag.INT),
             Case([3, 2, 1], False, DataFlag.INT),
-            Case([5, 6, 3], False, DataFlag.INT)
+            Case([5, 6, 3], False, DataFlag.INT),
+            Case([("aa", "bb", "cc", 2), ("aa", "bb", "cc", 1)], True, DataFlag.PHONEBOOK)
         ]
-
 
 class RandomIntTests(ValidGroup):
     @property
@@ -188,18 +186,37 @@ class RandomIntTests(ValidGroup):
         is_reversed = False
         self.entities = [generate_case(flag, is_reversed) for _ in range(100)]
 
-@is_main_group
-class TestInt(ValidGroup):
-    @property
-    def name(self):
-        return "Numbers"
-
-    def load(self):
-        self.entities = [
-            Case([1, 10, 100], True, DataFlag.INT),
-            Case([3, 2, 1], False, DataFlag.INT),
-            Case([5, 6, 3], False, DataFlag.INT)
-        ]
 
 def generate_case(flag: DataFlag, is_reversed: bool):
-    return Case(generate_data(flag), is_reversed, flag)
+    return Case(generate_data(flag, 50), is_reversed, flag)
+
+class RandomFloatTests(ValidGroup):
+    @property
+    def name(self):
+        return "Random Float Tests"
+
+    def load(self):
+        flag = DataFlag.FLOAT
+        is_reversed = False
+        self.entities = [generate_case(flag, is_reversed) for _ in range(100)]
+
+
+class RandomFloatReversedTests(ValidGroup):
+    @property
+    def name(self):
+        return "Random Reversed Float Tests"
+
+    def load(self):
+        flag = DataFlag.FLOAT
+        is_reversed = True
+        self.entities = [generate_case(flag, is_reversed) for _ in range(100)]
+
+class RandomPhonebookReversedTests(ValidGroup):
+    @property
+    def name(self):
+        return "Random Reversed Phonebook Tests"
+
+    def load(self):
+        flag = DataFlag.PHONEBOOK
+        is_reversed = True
+        self.entities = [generate_case(flag, is_reversed) for _ in range(100)]
