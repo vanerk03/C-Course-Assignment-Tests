@@ -1,14 +1,17 @@
 from __future__ import annotations
-from generate import generate_data, DataFlag, answer
+
 import os
 import subprocess
 from abc import ABC, abstractmethod
 from pathlib import Path
-from solve import solve
-import color_log
 from random import choice
 
-main_name = "Вова купи презервативы, деньги потом занесу"
+import color_log
+from colorama import Fore
+from generate import generate_data, DataFlag, answer
+from solve import solve
+
+main_name = "Заноси"
 stop_after = 1
 
 """
@@ -32,22 +35,8 @@ class ErrorExc(Exception):
 
 
 class Case:
-    def __init__(self, data: list[int | float | tuple[str, str, int]], is_reversed: bool, type: DataFlag):
-        self.data = data
-        self.is_reversed = is_reversed
-        self.out = answer(data, is_reversed)
-        self.type = type
+    pass
 
-    def __repr__(self):
-        if self.type == DataFlag.PHONEBOOK:
-            string = "\n".join(map(lambda x: " ".join(map(str, x)), self.data))
-        else:
-            string = "\n".join(map(str, self.data))
-
-        return  f"{self.type.value}\n" \
-                f"{'descending' if self.is_reversed else 'ascending'}\n" \
-                f"{len(self.data)}\n" \
-                f"{string}"
 
 class Group(ABC):
     """
@@ -107,13 +96,14 @@ class Group(ABC):
                     current_error += 1
                     if current_error == stop_after:
                         exit()
-                
+
             elif issubclass(ent, Group):
                 _ent = ent(level = self.level + 1)
                 _ent.load()
                 _ent.run()
 
         print(color_log.GREEN("   " * (self.level + 1) + "Passed\n"))
+
 
 class MainGroup(Group):
     @property
@@ -140,21 +130,42 @@ def is_main_group(group_class):
 Personal classes
 """
 
+
+class ValidCase(Case):
+    def __init__(self, data: list[int | float | tuple[str, str, str, int]], is_reversed: bool, _type: DataFlag):
+        self.data = data
+        self.is_reversed = is_reversed
+        self.out = answer(data, is_reversed)
+        self.type = _type
+
+    def __repr__(self):
+        if self.type == DataFlag.PHONEBOOK:
+            string = "\n".join(map(lambda x: " ".join(map(str, x)), self.data))
+        else:
+            string = "\n".join(map(str, self.data))
+
+        return f"{self.type.value}\n" \
+               f"{'descending' if self.is_reversed else 'ascending'}\n" \
+               f"{len(self.data)}\n" \
+               f"{string}"
+
+
 class ValidGroup(Group, ABC):
-    def _run_case(self, case: Case, inp: Path, out: Path):
-        
+    def _run_case(self, case: ValidCase, inp: Path, out: Path):
+
         with open(inp, "w") as inp_f:
             inp_f.write(str(case))
 
         subprocess.call([program_name, str(inp), str(out)])
-        # print(case.out, solve(out, case.type, case.is_reversed))
+
         if case.out == solve(out, case.type, case.is_reversed):
             return True
         else:
             raise ErrorExc
 
+
 def generate_case(flag: DataFlag, is_reversed: bool):
-    return Case(generate_data(flag, 50), is_reversed, flag)
+    return ValidCase(generate_data(flag, 50), is_reversed, flag)
 
 
 class ReadableTests(ValidGroup):
@@ -162,16 +173,17 @@ class ReadableTests(ValidGroup):
     def name(self):
         return "Readable Tests"
 
-
     def load(self):
         self.entities = [
-            Case([1, 10, 100], True, DataFlag.INT),
-            Case([3, 2, 1], False, DataFlag.INT),
-            Case([5, 6, 3], False, DataFlag.INT),
-            Case([("aa", "bb", "cc", 2), ("aa", "bb", "cc", 1)], True, DataFlag.PHONEBOOK),
-            Case([("AA", "BB", "CC", 2), ("aa", "bb", "cc", 1)], False, DataFlag.PHONEBOOK),
-            Case([("Yana", "Cist", "OleGOVNA", 2281337420), ("Yasha", "Lava", "Petrovna", 420420420)], True, DataFlag.PHONEBOOK),
-            Case([("Nill", "Kiggers", "Bullshitovich", 1188811), ("Yuck", "Fu", "Lol", 99999999999)], False, DataFlag.PHONEBOOK)
+            ValidCase([1, 10, 100], True, DataFlag.INT),
+            ValidCase([3, 2, 1], False, DataFlag.INT),
+            ValidCase([5, 6, 3], False, DataFlag.INT),
+            ValidCase([("aa", "bb", "cc", 2), ("aa", "bb", "cc", 1)], True, DataFlag.PHONEBOOK),
+            ValidCase([("AA", "BB", "CC", 2), ("aa", "bb", "cc", 1)], False, DataFlag.PHONEBOOK),
+            ValidCase([("Yana", "Cist", "OleGOVNA", 2281337420), ("Yasha", "Lava", "Petrovna", 420420420)], True,
+                      DataFlag.PHONEBOOK),
+            ValidCase([("Nill", "Kiggers", "Bullshitovich", 1188811), ("Yuck", "Fu", "Lol", 99999999999)], False,
+                      DataFlag.PHONEBOOK)
         ]
 
 
@@ -207,6 +219,7 @@ class RandomFloatReversedTests(ValidGroup):
         is_reversed = True
         self.entities = [generate_case(flag, is_reversed) for _ in range(100)]
 
+
 class RandomPhonebookReversedTests(ValidGroup):
     @property
     def name(self):
@@ -217,22 +230,25 @@ class RandomPhonebookReversedTests(ValidGroup):
         is_reversed = True
         self.entities = [generate_case(flag, is_reversed) for _ in range(100)]
 
+
 class Random(ValidGroup):
     """
-    This class generates tests 
+    This class generates tests
     """
+
     def __init__(self, number_of_tests: int, flag: DataFlag, level=0):
         self.number_of_tests = number_of_tests
         self.is_reversed = choice([True, False])
         self.flag = flag
         super().__init__(level)
-    
+
     @property
     def name(self):
-        return "Random tests" 
+        return "Random tests"
 
     def load(self):
         self.entities = [generate_case(self.flag, self.is_reversed) for _ in range(100)]
+
 
 @is_main_group
 class MainTestGroup(ValidGroup):
@@ -247,4 +263,91 @@ class MainTestGroup(ValidGroup):
             RandomFloatTests,
             RandomFloatReversedTests,
             RandomPhonebookReversedTests,
+        ]
+
+
+# Errors
+class InvalidParamCase(ValidCase):
+    def __init__(self, count: int, *args, **kwargs):
+        self.count = count
+        super().__init__(*args, **kwargs)
+
+
+class InvalidParams(Group, ABC):
+    @property
+    def name(self):
+        return "Invalid params"
+
+    def _run_case(self, case: InvalidParamCase, inp: Path, out: Path):
+
+        with open(inp, "w") as inp_f:
+            inp_f.write(str(case))
+
+        args = [program_name]
+        for i in range(case.count):
+            args.append("qweasdqweasd")
+
+        print(Fore.LIGHTBLACK_EX, end = '')
+        out = subprocess.call(args)
+        print(Fore.RESET, end = '')
+        if out != 4:
+            print(color_log.RED(f"Excepted return code 4, on command {' '.join(args)}"))
+            raise ErrorExc
+
+    def load(self):
+        self.entities = [
+            InvalidParamCase(0, [1, 10, 100], True, DataFlag.INT),
+            InvalidParamCase(1, [1, 10, 100], True, DataFlag.INT),
+            InvalidParamCase(3, [1, 10, 100], True, DataFlag.INT),
+            InvalidParamCase(4, [1, 10, 100], True, DataFlag.INT)
+        ]
+
+
+class CantFindFile(ReadableTests):
+    @property
+    def name(self):
+        return "FileNotFound"
+
+    def _run_case(self, case: ValidCase, inp: Path, out: Path):
+        args = [program_name, str(working_directory.joinpath("qweqweasd.txt")),
+                str(working_directory.joinpath("asdasdasdasd.txt"))]
+        print(Fore.LIGHTBLACK_EX, end = '')
+        out = subprocess.call(args)
+        print(Fore.RESET, end = '')
+        if out != 1:
+            print(color_log.RED(f"Excepted return code 1, on command {' '.join(args)}"))
+            raise ErrorExc
+
+
+class ConsoleOutput(ReadableTests):
+    @property
+    def name(self):
+        return "Console output"
+
+    def _run_case(self, case: ValidCase, inp: Path, out: Path):
+        with open(inp, "w") as inp_f:
+            inp_f.write(str(case))
+
+        subprocess.call([program_name, str(inp), str(out)], stdout = working_directory.joinpath("stdout.txt").open("w"))
+
+        with working_directory.joinpath("stdout.txt").open("r") as stdout:
+            if stdout.read() != '':
+                print(color_log.RED(f"Print should be write not in stdout"))
+                raise ErrorExc
+
+
+@is_main_group
+class InvalidGroup(Group, ABC):
+    @property
+    def name(self):
+        return "Errors testing"
+
+    def _run_case(self, case: Case, inp: Path, out: Path):
+        pass
+
+    def load(self):
+        self.entities = [
+            InvalidParams,
+            CantFindFile,
+            ConsoleOutput
         ]
