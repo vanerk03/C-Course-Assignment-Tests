@@ -1,16 +1,15 @@
 from __future__ import annotations
-
+from generate import generate_data, DataFlag, answer
 import os
 import subprocess
 from abc import ABC, abstractmethod
 from pathlib import Path
-
-import color_log
-from generate import generate_data, DataFlag, answer
 from solve import solve
+import color_log
+from random import choice
 
-main_name = "Тест 3-его дз"
-stop_after = 2
+main_name = "Вова купи презервативы, деньги потом занесу"
+stop_after = 1
 
 """
 Special classes
@@ -33,7 +32,7 @@ class ErrorExc(Exception):
 
 
 class Case:
-    def __init__(self, data: list[int | float | tuple[str, str, str, int]], is_reversed: bool, type: DataFlag):
+    def __init__(self, data: list[int | float | tuple[str, str, int]], is_reversed: bool, type: DataFlag):
         self.data = data
         self.is_reversed = is_reversed
         self.out = answer(data, is_reversed)
@@ -45,11 +44,10 @@ class Case:
         else:
             string = "\n".join(map(str, self.data))
 
-        return f"{self.type.value}\n" \
-               f"{'ascending' if self.is_reversed else 'descending'}\n" \
-               f"{len(self.data)}\n" \
-               f"{string}"
-
+        return  f"{self.type.value}\n" \
+                f"{'descending' if self.is_reversed else 'ascending'}\n" \
+                f"{len(self.data)}\n" \
+                f"{string}"
 
 class Group(ABC):
     """
@@ -94,24 +92,28 @@ class Group(ABC):
         3. Catch exceptions and wrong answerss. After 'stop_after' failed test will be stopped.
         """
         global current_error
-        print(" " * self.level + self.name)
+        print("   " * self.level + self.name + ":")
+
         for ent in self.entities:
             if issubclass(type(ent), Case):
                 inp = working_directory.joinpath(f"inp{current_error}.txt")
                 out = working_directory.joinpath(f"out{current_error}.txt")
                 try:
                     self._run_case(ent, inp, out)
+
                 except ErrorExc:
-                    print(color_log.RED(f"Wrong. Test is saved in {inp} / {out}"))
+                    print(color_log.RED("FAILED"))
+                    print(color_log.RED(f"Test is saved in {inp} / {out}"))
                     current_error += 1
                     if current_error == stop_after:
                         exit()
-
+                
             elif issubclass(ent, Group):
                 _ent = ent(level = self.level + 1)
                 _ent.load()
                 _ent.run()
 
+        print(color_log.GREEN("   " * (self.level + 1) + "Passed\n"))
 
 class MainGroup(Group):
     @property
@@ -138,10 +140,6 @@ def is_main_group(group_class):
 Personal classes
 """
 
-def generate_case(flag: DataFlag, is_reversed: bool):
-    return Case(generate_data(flag, 50), is_reversed, flag)
-
-
 class ValidGroup(Group, ABC):
     def _run_case(self, case: Case, inp: Path, out: Path):
         
@@ -149,32 +147,21 @@ class ValidGroup(Group, ABC):
             inp_f.write(str(case))
 
         subprocess.call([program_name, str(inp), str(out)])
+        # print(case.out, solve(out, case.type, case.is_reversed))
         if case.out == solve(out, case.type, case.is_reversed):
             return True
         else:
             raise ErrorExc
 
-
-@is_main_group
-class MainTestGroup(ValidGroup):
-    @property
-    def name(self):
-        return "Testing:"
-
-    def load(self):
-        self.entities = [
-            ReadableTests,
-            RandomIntTests,
-            RandomFloatTests,
-            RandomFloatReversedTests,
-            RandomPhonebookReversedTests
-        ]
+def generate_case(flag: DataFlag, is_reversed: bool):
+    return Case(generate_data(flag, 50), is_reversed, flag)
 
 
 class ReadableTests(ValidGroup):
     @property
     def name(self):
         return "Readable Tests"
+
 
     def load(self):
         self.entities = [
@@ -220,7 +207,6 @@ class RandomFloatReversedTests(ValidGroup):
         is_reversed = True
         self.entities = [generate_case(flag, is_reversed) for _ in range(100)]
 
-
 class RandomPhonebookReversedTests(ValidGroup):
     @property
     def name(self):
@@ -230,3 +216,35 @@ class RandomPhonebookReversedTests(ValidGroup):
         flag = DataFlag.PHONEBOOK
         is_reversed = True
         self.entities = [generate_case(flag, is_reversed) for _ in range(100)]
+
+class Random(ValidGroup):
+    """
+    This class generates tests 
+    """
+    def __init__(self, number_of_tests: int, flag: DataFlag, level=0):
+        self.number_of_tests = number_of_tests
+        self.is_reversed = choice([True, False])
+        self.flag = flag
+        super().__init__(level)
+    
+    @property
+    def name(self):
+        return "Random tests" 
+
+    def load(self):
+        self.entities = [generate_case(self.flag, self.is_reversed) for _ in range(100)]
+
+@is_main_group
+class MainTestGroup(ValidGroup):
+    @property
+    def name(self):
+        return "Testing"
+
+    def load(self):
+        self.entities = [
+            ReadableTests,
+            RandomIntTests,
+            RandomFloatTests,
+            RandomFloatReversedTests,
+            RandomPhonebookReversedTests,
+        ]
