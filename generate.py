@@ -2,10 +2,10 @@ import enum
 import os
 import random
 import json
-from collect import Case
+
 from pathlib import Path
 
-with Path(os.getcwd()).joinpath("words.json").open("r") as file:
+with Path(os.getcwd()).joinpath("SkakovLabO4ka/words.json").open("r") as file:
     WORD_LIST = json.load(file)
 
 
@@ -39,5 +39,3 @@ def answer(data: list, is_reversed=False):
     return sorted(data, reverse = is_reversed)
 
 
-def generate_case(flag: DataFlag, is_reversed: bool):
-    return Case(generate_data(flag), is_reversed, flag)
