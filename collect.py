@@ -1,12 +1,13 @@
 from __future__ import annotations
-from generate import generate_data, DataFlag, answer
+
 import os
 import subprocess
 from abc import ABC, abstractmethod
 from pathlib import Path
-from solve import solve
+
 import color_log
-from random import choice
+from generate import generate_data, DataFlag, answer
+from solve import solve
 
 main_name = "Вова купи презервативы, деньги потом занесу"
 stop_after = 1
@@ -32,7 +33,7 @@ class ErrorExc(Exception):
 
 
 class Case:
-    def __init__(self, data: list[int | float | tuple[str, str, int]], is_reversed: bool, type: DataFlag):
+    def __init__(self, data: list[int | float | tuple[str, str, str, int]], is_reversed: bool, type: DataFlag):
         self.data = data
         self.is_reversed = is_reversed
         self.out = answer(data, is_reversed)
@@ -44,10 +45,11 @@ class Case:
         else:
             string = "\n".join(map(str, self.data))
 
-        return  f"{self.type.value}\n" \
-                f"{'ascending' if self.is_reversed else 'descending'}\n" \
-                f"{len(self.data)}\n" \
-                f"{string}"
+        return f"{self.type.value}\n" \
+               f"{'ascending' if self.is_reversed else 'descending'}\n" \
+               f"{len(self.data)}\n" \
+               f"{string}"
+
 
 class Group(ABC):
     """
@@ -139,6 +141,10 @@ def is_main_group(group_class):
 Personal classes
 """
 
+def generate_case(flag: DataFlag, is_reversed: bool):
+    return Case(generate_data(flag, 50), is_reversed, flag)
+
+
 class ValidGroup(Group, ABC):
     def _run_case(self, case: Case, inp: Path, out: Path):
         
@@ -151,8 +157,13 @@ class ValidGroup(Group, ABC):
         else:
             raise ErrorExc
 
-def generate_case(flag: DataFlag, is_reversed: bool):
-    return Case(generate_data(flag, 50), is_reversed, flag)
+
+@is_main_group
+class MainTestGroup(ValidGroup):
+    @property
+    def name(self):
+        return "Testing:"
+
 
 
 class ReadableTests(ValidGroup):
@@ -205,6 +216,7 @@ class RandomFloatReversedTests(ValidGroup):
         is_reversed = True
         self.entities = [generate_case(flag, is_reversed) for _ in range(100)]
 
+
 class RandomPhonebookReversedTests(ValidGroup):
     @property
     def name(self):
@@ -221,7 +233,7 @@ class Random(ValidGroup):
     """
     def __init__(self, number_of_tests: int, flag: DataFlag, level=0):
         self.number_of_tests = number_of_tests
-        self.is_reversed = choice([True, False])
+        self.is_reversed = True
         self.flag = flag
         super().__init__(level)
     
