@@ -9,7 +9,7 @@ import color_log
 from generate import generate_data, DataFlag, answer
 from solve import solve
 
-main_name = "Тест 3его дз"
+main_name = "Тест 3-его дз"
 stop_after = 2
 
 """
@@ -40,7 +40,6 @@ class Case:
         self.type = type
 
     def __repr__(self):
-        # this should be probably removed
         if self.type == DataFlag.PHONEBOOK:
             string = "\n".join(map(lambda x: " ".join(map(str, x)), self.data))
         else:
@@ -92,7 +91,7 @@ class Group(ABC):
 
         1. Create input.txt output.txt, don't write.
         2. Call _run().
-        3. Catch exceptions and wrongs. After 'stop_after' failed test will be stopped.
+        3. Catch exceptions and wrong answerss. After 'stop_after' failed test will be stopped.
         """
         global current_error
         print(" " * self.level + self.name)
@@ -103,7 +102,7 @@ class Group(ABC):
                 try:
                     self._run_case(ent, inp, out)
                 except ErrorExc:
-                    print(color_log.RED(f"Wrong. Test save in {inp} / {out}"))
+                    print(color_log.RED(f"Wrong. Test is saved in {inp} / {out}"))
                     current_error += 1
                     if current_error == stop_after:
                         exit()
@@ -120,10 +119,10 @@ class MainGroup(Group):
         return main_name
 
     def _run_case(self, case: Case, inp: Path, out: Path):
-        raise "MainGroup not run cases."
+        raise "MainGroup doesn't run cases."
 
     def load(self):
-        raise "MainGroup have not load."
+        raise "MainGroup has no load method."
 
 
 main_group = MainGroup()
@@ -131,13 +130,16 @@ main_group = MainGroup()
 
 def is_main_group(group_class):
     if not issubclass(group_class, Group):
-        raise "is_test_group is decorator for classes, that inherit Group."
+        raise "is_test_group is a decorator for classes, that inherits from Group."
     main_group.entities.append(group_class)
 
 
 """
 Personal classes
 """
+
+def generate_case(flag: DataFlag, is_reversed: bool):
+    return Case(generate_data(flag, 50), is_reversed, flag)
 
 
 class ValidGroup(Group, ABC):
@@ -179,7 +181,10 @@ class ReadableTests(ValidGroup):
             Case([1, 10, 100], True, DataFlag.INT),
             Case([3, 2, 1], False, DataFlag.INT),
             Case([5, 6, 3], False, DataFlag.INT),
-            Case([("aa", "bb", "cc", 2), ("aa", "bb", "cc", 1)], True, DataFlag.PHONEBOOK)
+            Case([("aa", "bb", "cc", 2), ("aa", "bb", "cc", 1)], True, DataFlag.PHONEBOOK),
+            Case([("AA", "BB", "CC", 2), ("aa", "bb", "cc", 1)], False, DataFlag.PHONEBOOK),
+            Case([("Yana", "Cist", "OleGOVNA", 2281337420), ("Yasha", "Lava", "Petrovna", 420420420)], True, DataFlag.PHONEBOOK),
+            Case([("Nill", "Kiggers", "Bullshitovich", 1188811), ("Yuck", "Fu", "Lol", 99999999999)], False, DataFlag.PHONEBOOK)
         ]
 
 
@@ -192,10 +197,6 @@ class RandomIntTests(ValidGroup):
         flag = DataFlag.INT
         is_reversed = False
         self.entities = [generate_case(flag, is_reversed) for _ in range(100)]
-
-
-def generate_case(flag: DataFlag, is_reversed: bool):
-    return Case(generate_data(flag, 50), is_reversed, flag)
 
 
 class RandomFloatTests(ValidGroup):
