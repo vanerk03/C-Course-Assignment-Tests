@@ -2,6 +2,9 @@ import os
 import sys
 from pathlib import Path
 import collect
+from subprocess import call
+
+call(["git", "pull"], cwd='SkakovLabO4ka')
 
 # ----INIT----
 # parsing args, write on module argparse
