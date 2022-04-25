@@ -5,7 +5,8 @@ import json
 
 from pathlib import Path
 
-with Path(os.getcwd()).joinpath("SkakovLabO4ka/words.json").open("r") as file:
+testing_directory = Path(__file__).parent
+with testing_directory.joinpath("words.json").open("r") as file:
     WORD_LIST = json.load(file)
 
 

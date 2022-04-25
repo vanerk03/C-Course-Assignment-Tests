@@ -23,7 +23,7 @@
 ### Запуск
 Тесты больше не компилируют программу. Тестируется уже скомпилированная вами программа.
 1. Командная строка Windows: `python .\SkakovLabO4ka\ lab3.exe`
-2. Командная строка Ubuntu\MacOS: `python3 .\SkakovLabO4ka\ lab3.exe`
+2. Командная строка Ubuntu\MacOS: `python3 .\SkakovLabO4ka\ lab3`
 
 
 ### 
