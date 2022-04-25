@@ -132,6 +132,7 @@ Personal classes
 no_float = False
 no_phonebook = False
 no_error = False
+format_check = False
 
 
 class ValidCase(Case):
@@ -185,7 +186,10 @@ class ReadableTests(ValidGroup):
         self.entities = [
             ValidCase([1, 10, 100], True, DataFlag.INT),
             ValidCase([3, 2, 1], False, DataFlag.INT),
-            ValidCase([5, 6, 3], False, DataFlag.INT)]
+            ValidCase([5, 6, 3], False, DataFlag.INT),
+            ValidCase([], False, DataFlag.INT),
+            ValidCase([], True, DataFlag.INT)
+        ]
 
         if not no_phonebook:
             self.entities += [
@@ -300,7 +304,7 @@ class InvalidParams(Group, ABC):
         with open(inp, "w") as inp_f:
             inp_f.write(str(case))
 
-        args = [program_name]
+        args = [str(program_name)]
         for i in range(case.count):
             args.append("qweasdqweasd")
 
@@ -326,7 +330,7 @@ class CantFindFile(ReadableTests):
         return "FileNotFound"
 
     def _run_case(self, case: ValidCase, inp: Path, out: Path):
-        args = [program_name, str(working_directory.joinpath("qweqweasd.txt")),
+        args = [str(program_name), str(working_directory.joinpath("qweqweasd.txt")),
                 str(working_directory.joinpath("asdasdasdasd.txt"))]
         print(Fore.LIGHTBLACK_EX, end = '')
         out = subprocess.call(args)
@@ -345,7 +349,8 @@ class ConsoleOutput(ReadableTests):
         with open(inp, "w") as inp_f:
             inp_f.write(str(case))
 
-        subprocess.call([program_name, str(inp), str(out)], stdout = working_directory.joinpath("stdout.txt").open("w"))
+        subprocess.call([str(program_name), str(inp), str(out)],
+                        stdout = working_directory.joinpath("stdout.txt").open("w"))
 
         with working_directory.joinpath("stdout.txt").open("r") as stdout:
             if stdout.read() != '':
@@ -369,3 +374,22 @@ class InvalidGroup(Group, ABC):
                 CantFindFile,
                 ConsoleOutput
             ]
+
+
+@is_main_group
+class CheckClangFormat(Group, ABC):
+    @property
+    def name(self):
+        return ".clang-format check | not for all"
+
+    def _run_case(self, case: Case, inp: Path, out: Path):
+        subprocess.call(
+            ['clang-format', '-style=file', '--dry-run', '-Werror', '.\main.cpp', '.\phonebook.cpp', '.\quicksort.h',
+             '.\phonebook.h'])
+
+    def load(self):
+        if not no_error:
+            if format_check:
+                self.entities = [
+                    Case()
+                ]
