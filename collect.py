@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import platform
 import subprocess
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -18,6 +19,7 @@ stop_after = 1
 Special classes
 """
 working_directory = Path(os.getcwd())
+testing_directory = Path(__file__).parent
 program_name: Path
 current_error = 0
 
@@ -96,6 +98,8 @@ class Group(ABC):
                     current_error += 1
                     if current_error == stop_after:
                         exit()
+                except Exception:
+                    print(color_log.RED(f"FAILED: system error"))
 
             elif issubclass(ent, Group):
                 _ent = ent(level = self.level + 1)
@@ -383,9 +387,16 @@ class CheckClangFormat(Group, ABC):
         return ".clang-format check | not for all"
 
     def _run_case(self, case: Case, inp: Path, out: Path):
-        subprocess.call(
-            ['clang-format', '-style=file', '--dry-run', '-Werror', '.\main.cpp', '.\phonebook.cpp', '.\quicksort.h',
-             '.\phonebook.h'])
+        args = ['clang-format', '-style=file', '--dry-run', '-Werror', '.\main.cpp', '.\phonebook.cpp', '.\quicksort.h',
+                '.\phonebook.h']
+        if platform.system() == 'Windows':
+            args = [testing_directory.joinpath("scripts/clang-format.exe"), '-style=file', '--dry-run', '-Werror',
+                    '.\main.cpp', '.\phonebook.cpp', '.\quicksort.h',
+                    '.\phonebook.h']
+        try:
+            subprocess.call(args)
+        except:
+            print("Function not support for you. Use windows or add clang-format")
 
     def load(self):
         if not no_error:
