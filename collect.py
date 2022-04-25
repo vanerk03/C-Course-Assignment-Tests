@@ -345,7 +345,8 @@ class ConsoleOutput(ReadableTests):
         with open(inp, "w") as inp_f:
             inp_f.write(str(case))
 
-        subprocess.call([str(program_name), str(inp), str(out)], stdout = working_directory.joinpath("stdout.txt").open("w"))
+        subprocess.call([str(program_name), str(inp), str(out)],
+                        stdout = working_directory.joinpath("stdout.txt").open("w"))
 
         with working_directory.joinpath("stdout.txt").open("r") as stdout:
             if stdout.read() != '':
@@ -368,4 +369,22 @@ class InvalidGroup(Group, ABC):
                 InvalidParams,
                 CantFindFile,
                 ConsoleOutput
+            ]
+
+
+@is_main_group
+class CheckClangFormat(Group, ABC):
+    @property
+    def name(self):
+        return ".clang-format check | not for all"
+
+    def _run_case(self, case: Case, inp: Path, out: Path):
+        subprocess.call(
+            ['clang-format', '-style=file', '--dry-run', '-Werror', '.\main.cpp', '.\phonebook.cpp', '.\quicksort.h',
+             '.\phonebook.h'])
+
+    def load(self):
+        if not no_error:
+            self.entities = [
+                Case()
             ]
