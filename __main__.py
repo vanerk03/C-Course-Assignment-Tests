@@ -11,6 +11,15 @@ call(["git", "pull"], cwd='SkakovLabO4ka')
 program_name = "main"
 try:
     program_name = sys.argv[1]
+
+    if '-nf' in sys.argv:
+        collect.no_float = True
+    if '-nfp' in sys.argv:
+        collect.no_phonebook = True
+    if '-ner' in sys.argv:
+        collect.no_error = True
+
+
 except IndexError:
     exit("you should write options: program_name")
 

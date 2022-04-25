@@ -129,6 +129,9 @@ def is_main_group(group_class):
 """
 Personal classes
 """
+no_float = False
+no_phonebook = False
+no_error = False
 
 
 class ValidCase(Case):
@@ -158,7 +161,12 @@ class ValidGroup(Group, ABC):
 
         subprocess.call([program_name, str(inp), str(out)])
 
-        if case.out == solve(out, case.type, case.is_reversed):
+        try:
+            _sl = solve(out, case.type, case.is_reversed)
+        except Exception:
+            raise ErrorExc
+
+        if case.out == _sl:
             return True
         else:
             raise ErrorExc
@@ -177,14 +185,17 @@ class ReadableTests(ValidGroup):
         self.entities = [
             ValidCase([1, 10, 100], True, DataFlag.INT),
             ValidCase([3, 2, 1], False, DataFlag.INT),
-            ValidCase([5, 6, 3], False, DataFlag.INT),
-            ValidCase([("aa", "bb", "cc", 2), ("aa", "bb", "cc", 1)], True, DataFlag.PHONEBOOK),
-            ValidCase([("AA", "BB", "CC", 2), ("aa", "bb", "cc", 1)], False, DataFlag.PHONEBOOK),
-            ValidCase([("Yana", "Cist", "OleGOVNA", 2281337420), ("Yasha", "Lava", "Petrovna", 420420420)], True,
-                      DataFlag.PHONEBOOK),
-            ValidCase([("Nill", "Kiggers", "Bullshitovich", 1188811), ("Yuck", "Fu", "Lol", 99999999999)], False,
-                      DataFlag.PHONEBOOK)
-        ]
+            ValidCase([5, 6, 3], False, DataFlag.INT)]
+
+        if not no_phonebook:
+            self.entities += [
+                ValidCase([("aa", "bb", "cc", 2), ("aa", "bb", "cc", 1)], True, DataFlag.PHONEBOOK),
+                ValidCase([("AA", "BB", "CC", 2), ("aa", "bb", "cc", 1)], False, DataFlag.PHONEBOOK),
+                ValidCase([("Yana", "Cist", "OleGOVNA", 2281337420), ("Yasha", "Lava", "Petrovna", 420420420)], True,
+                          DataFlag.PHONEBOOK),
+                ValidCase([("Nill", "Kiggers", "Bullshitovich", 1188811), ("Yuck", "Fu", "Lol", 99999999999)], False,
+                          DataFlag.PHONEBOOK)
+            ]
 
 
 class RandomIntTests(ValidGroup):
@@ -259,11 +270,17 @@ class MainTestGroup(ValidGroup):
     def load(self):
         self.entities = [
             ReadableTests,
-            RandomIntTests,
-            RandomFloatTests,
-            RandomFloatReversedTests,
-            RandomPhonebookReversedTests,
+            RandomIntTests
         ]
+        if not no_float:
+            self.entities += [
+                RandomFloatTests,
+                RandomFloatReversedTests
+            ]
+        if not no_phonebook:
+            self.entities += [
+                RandomPhonebookReversedTests,
+            ]
 
 
 # Errors
@@ -346,8 +363,9 @@ class InvalidGroup(Group, ABC):
         pass
 
     def load(self):
-        self.entities = [
-            InvalidParams,
-            CantFindFile,
-            ConsoleOutput
-        ]
+        if not no_error:
+            self.entities = [
+                InvalidParams,
+                CantFindFile,
+                ConsoleOutput
+            ]
