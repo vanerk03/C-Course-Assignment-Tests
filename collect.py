@@ -387,9 +387,16 @@ class CheckClangFormat(Group, ABC):
         return ".clang-format check | not for all"
 
     def _run_case(self, case: Case, inp: Path, out: Path):
-        subprocess.call(
-            ['clang-format', '-style=file', '--dry-run', '-Werror', '.\main.cpp', '.\phonebook.cpp', '.\quicksort.h',
-             '.\phonebook.h'])
+        args = ['clang-format', '-style=file', '--dry-run', '-Werror', '.\main.cpp', '.\phonebook.cpp', '.\quicksort.h',
+                '.\phonebook.h']
+        if platform.system() == 'Windows':
+            args = [testing_directory.joinpath("scripts/clang-format.exe"), '-style=file', '--dry-run', '-Werror',
+                    '.\main.cpp', '.\phonebook.cpp', '.\quicksort.h',
+                    '.\phonebook.h']
+        try:
+            subprocess.call(args)
+        except:
+            print("Function not support for you. Use windows or add clang-format")
 
     def load(self):
         if not no_error:
