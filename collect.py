@@ -185,7 +185,10 @@ class ReadableTests(ValidGroup):
         self.entities = [
             ValidCase([1, 10, 100], True, DataFlag.INT),
             ValidCase([3, 2, 1], False, DataFlag.INT),
-            ValidCase([5, 6, 3], False, DataFlag.INT)]
+            ValidCase([5, 6, 3], False, DataFlag.INT),
+            ValidCase([], False, DataFlag.INT),
+            ValidCase([], True, DataFlag.INT)
+        ]
 
         if not no_phonebook:
             self.entities += [
