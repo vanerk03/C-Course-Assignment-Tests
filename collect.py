@@ -300,7 +300,7 @@ class InvalidParams(Group, ABC):
         with open(inp, "w") as inp_f:
             inp_f.write(str(case))
 
-        args = [program_name]
+        args = [str(program_name)]
         for i in range(case.count):
             args.append("qweasdqweasd")
 
@@ -326,7 +326,7 @@ class CantFindFile(ReadableTests):
         return "FileNotFound"
 
     def _run_case(self, case: ValidCase, inp: Path, out: Path):
-        args = [program_name, str(working_directory.joinpath("qweqweasd.txt")),
+        args = [str(program_name), str(working_directory.joinpath("qweqweasd.txt")),
                 str(working_directory.joinpath("asdasdasdasd.txt"))]
         print(Fore.LIGHTBLACK_EX, end = '')
         out = subprocess.call(args)
@@ -345,7 +345,7 @@ class ConsoleOutput(ReadableTests):
         with open(inp, "w") as inp_f:
             inp_f.write(str(case))
 
-        subprocess.call([program_name, str(inp), str(out)], stdout = working_directory.joinpath("stdout.txt").open("w"))
+        subprocess.call([str(program_name), str(inp), str(out)], stdout = working_directory.joinpath("stdout.txt").open("w"))
 
         with working_directory.joinpath("stdout.txt").open("r") as stdout:
             if stdout.read() != '':
