@@ -132,6 +132,7 @@ Personal classes
 no_float = False
 no_phonebook = False
 no_error = False
+format_check = False
 
 
 class ValidCase(Case):
@@ -388,6 +389,7 @@ class CheckClangFormat(Group, ABC):
 
     def load(self):
         if not no_error:
-            self.entities = [
-                Case()
-            ]
+            if format_check:
+                self.entities = [
+                    Case()
+                ]
