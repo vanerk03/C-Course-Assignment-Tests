@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import platform
 import subprocess
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -388,14 +387,7 @@ class CheckClangFormat(Group, ABC):
     def _run_case(self, case: Case, inp: Path, out: Path):
         args = ['clang-format', '-style=file', '--dry-run', '-Werror', '.\main.cpp', '.\phonebook.cpp', '.\quicksort.h',
                 '.\phonebook.h']
-        if platform.system() == 'Windows':
-            args = [testing_directory.joinpath("scripts/clang-format.exe"), '-style=file', '--dry-run', '-Werror',
-                    '.\main.cpp', '.\phonebook.cpp', '.\quicksort.h',
-                    '.\phonebook.h']
-        try:
-            subprocess.call(args)
-        except:
-            print("Function not support for you. Use windows or add clang-format")
+        subprocess.call(args)
 
     def load(self):
         if not no_error:
