@@ -18,8 +18,6 @@ try:
         collect.no_phonebook = True
     if '-ner' in sys.argv:
         collect.no_error = True
-    if '-fm' in sys.argv:
-        collect.format_check = True
 
 
 except IndexError:
