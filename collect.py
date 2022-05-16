@@ -12,14 +12,12 @@ from generate import generate_data, DataFlag, answer
 from solve import solve
 
 main_name = "All tests"
-stop_after = 1
 
 """
 Special classes
 """
 working_directory = Path(os.getcwd())
 program_name: Path
-current_error = 0
 
 
 class StopExc(Exception):
@@ -57,12 +55,10 @@ class Group(ABC):
     @abstractmethod
     def _run_case(self, case: Case, inp: Path, out: Path):
         """This method should start and check one case, without unexpected exceptions."""
-        pass
 
     @abstractmethod
     def load(self):
         """This method should add entities(cases or groups) in self.entities."""
-        pass
 
     def run(self):
         """
@@ -70,24 +66,26 @@ class Group(ABC):
 
         1. Create input.txt output.txt, don't write.
         2. Call _run().
-        3. Catch exceptions and wrong answerss. After 'stop_after' failed test will be stopped.
+        3. Catch exceptions and wrong answerss. After 1 failed test, testing will resume.
         """
         global current_error
         print("   " * self.level + self.name + ":")
 
         for ent in self.entities:
             if issubclass(type(ent), Case):
-                inp = working_directory.joinpath(f"inp{current_error}.txt")
-                out = working_directory.joinpath(f"out{current_error}.txt")
+                inp = working_directory.joinpath(f"inp.txt")
+                out = working_directory.joinpath(f"out.txt")
                 try:
                     self._run_case(ent, inp, out)
-
+                    try:
+                        os.remove(inp)
+                        os.remove(out)
+                    except FileNotFoundError:
+                        pass
                 except ErrorExc:
                     print(color_log.RED("FAILED"))
                     print(color_log.RED(f"Test is saved in {inp} / {out}"))
-                    current_error += 1
-                    if current_error == stop_after:
-                        exit()
+                    exit()
 
             elif issubclass(ent, Group):
                 _ent = ent(level=self.level + 1)
@@ -350,9 +348,13 @@ class ConsoleOutput(ReadableTests):
                         stdout=working_directory.joinpath("stdout.txt").open("w"))
 
         with working_directory.joinpath("stdout.txt").open("r") as stdout:
-            if stdout.read() != '':
-                print(color_log.RED(f"Print should be write not in stdout"))
+            if len(stdout.read()) != 0:
+                print(color_log.RED(f"Result should not be written in stdout.txt"))
                 raise ErrorExc
+        try:
+            os.remove("stdout.txt")
+        except FileNotFoundError:
+            pass
 
 
 @is_main_group
