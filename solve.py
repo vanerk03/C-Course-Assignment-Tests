@@ -3,7 +3,6 @@ from generate import DataFlag
 
 def solve(path, flag: DataFlag, is_reversed: bool):
     fl = open(path, "r")
-
     if flag == DataFlag.INT:
         ot = [int(x.rstrip("\n")) for x in fl.readlines()]
     elif flag == DataFlag.FLOAT:

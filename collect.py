@@ -158,7 +158,7 @@ class ValidGroup(Group, ABC):
         subprocess.call([program_name, str(inp), str(out)])
 
         try:
-            _sl = solve(case.out)
+            _sl = solve(out, case.type, case.is_reversed)
         except Exception:
             raise ErrorExc
 
