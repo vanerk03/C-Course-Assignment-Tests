@@ -36,5 +36,5 @@ def generate_element(flag: DataFlag):
         raise ValueError("flag should be either 0 or 1 or 2")
 
 
-def answer(data: list, is_reversed:bool=False):
+def answer(data: list, is_reversed: bool = False):
     return sorted(data, reverse=is_reversed)

@@ -9,6 +9,7 @@ from random import choice
 import color_log
 from colorama import Fore
 from generate import generate_data, DataFlag, answer
+from solve import solve
 
 main_name = "All tests"
 
@@ -157,7 +158,7 @@ class ValidGroup(Group, ABC):
         subprocess.call([program_name, str(inp), str(out)])
 
         try:
-            _sl = answer(case.out, case.is_reversed)
+            _sl = solve(case.out)
         except Exception:
             raise ErrorExc
 
