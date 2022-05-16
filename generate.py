@@ -28,8 +28,8 @@ def generate_element(flag: DataFlag):
     elif flag == DataFlag.FLOAT:
         return random.randint(1, 1000000) / (10 ** random.randint(0, 6))
     elif flag == DataFlag.PHONEBOOK:
-        return (random.choice(WORD_LIST), random.choice(WORD_LIST),
-                random.choice(WORD_LIST), random.randint(1, 10 ** 11 - 1))
+        return (random.choice(WORD_LIST)[:20], random.choice(WORD_LIST)[:20],
+                random.choice(WORD_LIST)[:20], random.randint(1, 10 ** 11 - 1))
     else:
         raise ValueError("flag should be either 0 or 1 or 2")
 
