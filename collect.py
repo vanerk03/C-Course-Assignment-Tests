@@ -11,7 +11,7 @@ from colorama import Fore
 from generate import generate_data, DataFlag, answer
 from solve import solve
 
-main_name = "Заноси"
+main_name = "All tests"
 stop_after = 1
 
 """
@@ -40,18 +40,14 @@ class Case:
 
 class Group(ABC):
     """
-    This structure is superclass.
-    There collect groups and cases.
+    This structure is a superclass that stores both groups and cases. 
     And run cases.
     """
 
     @property
     @abstractmethod
     def name(self):
-        """
-        This method should return information about the group.
-        """
-        pass
+        """This method should return information about the group."""
 
     def __init__(self, level=0):
         self.entities = []
@@ -60,16 +56,12 @@ class Group(ABC):
 
     @abstractmethod
     def _run_case(self, case: Case, inp: Path, out: Path):
-        """
-        This method should start and check one case, without unexpected exceptions.
-        """
+        """This method should start and check one case, without unexpected exceptions."""
         pass
 
     @abstractmethod
     def load(self):
-        """
-        This method should add entities(cases or groups) in self.entities.
-        """
+        """This method should add entities(cases or groups) in self.entities."""
         pass
 
     def run(self):
@@ -98,7 +90,7 @@ class Group(ABC):
                         exit()
 
             elif issubclass(ent, Group):
-                _ent = ent(level = self.level + 1)
+                _ent = ent(level=self.level + 1)
                 _ent.load()
                 _ent.run()
 
@@ -193,11 +185,13 @@ class ReadableTests(ValidGroup):
 
         if not no_phonebook:
             self.entities += [
-                ValidCase([("aa", "bb", "cc", 2), ("aa", "bb", "cc", 1)], True, DataFlag.PHONEBOOK),
-                ValidCase([("AA", "BB", "CC", 2), ("aa", "bb", "cc", 1)], False, DataFlag.PHONEBOOK),
-                ValidCase([("Yana", "Cist", "OleGOVNA", 2281337420), ("Yasha", "Lava", "Petrovna", 420420420)], True,
+                ValidCase([("aa", "bb", "cc", 2), ("aa", "bb",
+                          "cc", 1)], True, DataFlag.PHONEBOOK),
+                ValidCase([("AA", "BB", "CC", 2), ("aa", "bb", "cc", 1)],
+                          False, DataFlag.PHONEBOOK),
+                ValidCase([("Elon", "Musk", "Johnnovich", 2281337420), ("Nazarov", "Vladimir", "Alexeevich", 420420420)], True,
                           DataFlag.PHONEBOOK),
-                ValidCase([("Nill", "Kiggers", "Bullshitovich", 1188811), ("Yuck", "Fu", "Lol", 99999999999)], False,
+                ValidCase([("Skakov", "Pavlik", "Sergeich", 1188811), ("Kanistr", "Yoda", "Anatolyevich", 99999999999)], False,
                           DataFlag.PHONEBOOK)
             ]
 
@@ -262,7 +256,8 @@ class Random(ValidGroup):
         return "Random tests"
 
     def load(self):
-        self.entities = [generate_case(self.flag, self.is_reversed) for _ in range(100)]
+        self.entities = [generate_case(
+            self.flag, self.is_reversed) for _ in range(100)]
 
 
 @is_main_group
@@ -287,7 +282,7 @@ class MainTestGroup(ValidGroup):
             ]
 
 
-# Errors
+# Error handling
 class InvalidParamCase(ValidCase):
     def __init__(self, count: int, *args, **kwargs):
         self.count = count
@@ -308,11 +303,12 @@ class InvalidParams(Group, ABC):
         for i in range(case.count):
             args.append("qweasdqweasd")
 
-        print(Fore.LIGHTBLACK_EX, end = '')
+        print(Fore.LIGHTBLACK_EX, end='')
         out = subprocess.call(args)
-        print(Fore.RESET, end = '')
+        print(Fore.RESET, end='')
         if out != 4:
-            print(color_log.RED(f"Excepted return code 4, on command {' '.join(args)}"))
+            print(color_log.RED(
+                f"Excepted return code 4, on command {' '.join(args)}"))
             raise ErrorExc
 
     def load(self):
@@ -332,11 +328,12 @@ class CantFindFile(ReadableTests):
     def _run_case(self, case: ValidCase, inp: Path, out: Path):
         args = [str(program_name), str(working_directory.joinpath("qweqweasd.txt")),
                 str(working_directory.joinpath("asdasdasdasd.txt"))]
-        print(Fore.LIGHTBLACK_EX, end = '')
+        print(Fore.LIGHTBLACK_EX, end='')
         out = subprocess.call(args)
-        print(Fore.RESET, end = '')
+        print(Fore.RESET, end='')
         if out != 1:
-            print(color_log.RED(f"Excepted return code 1, on command {' '.join(args)}"))
+            print(color_log.RED(
+                f"Excepted return code 1, on command {' '.join(args)}"))
             raise ErrorExc
 
 
@@ -350,7 +347,7 @@ class ConsoleOutput(ReadableTests):
             inp_f.write(str(case))
 
         subprocess.call([str(program_name), str(inp), str(out)],
-                        stdout = working_directory.joinpath("stdout.txt").open("w"))
+                        stdout=working_directory.joinpath("stdout.txt").open("w"))
 
         with working_directory.joinpath("stdout.txt").open("r") as stdout:
             if stdout.read() != '':
