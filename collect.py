@@ -9,9 +9,13 @@ from random import choice
 import color_log
 from colorama import Fore
 from generate import generate_data, DataFlag, answer
-from solve import solve
 
 main_name = "All tests"
+
+
+def generate_case(flag: DataFlag, is_reversed: bool):
+    return ValidCase(generate_data(flag, 50), is_reversed, flag)
+
 
 """
 Special classes
@@ -153,7 +157,7 @@ class ValidGroup(Group, ABC):
         subprocess.call([program_name, str(inp), str(out)])
 
         try:
-            _sl = solve(out, case.type, case.is_reversed)
+            _sl = answer(case.out, case.is_reversed)
         except Exception:
             raise ErrorExc
 
@@ -161,10 +165,6 @@ class ValidGroup(Group, ABC):
             return True
         else:
             raise ErrorExc
-
-
-def generate_case(flag: DataFlag, is_reversed: bool):
-    return ValidCase(generate_data(flag, 50), is_reversed, flag)
 
 
 class ReadableTests(ValidGroup):

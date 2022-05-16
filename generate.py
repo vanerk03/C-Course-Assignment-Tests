@@ -1,5 +1,5 @@
+"""This class is responsible for providing random data for test cases and solving"""
 import enum
-import os
 import random
 import json
 
@@ -11,18 +11,20 @@ with testing_directory.joinpath("words.json").open("r") as file:
 
 
 class DataFlag(enum.Enum):
+    """Sorting flags"""
     INT = "int"
     FLOAT = "float"
     PHONEBOOK = "phonebook"
 
 
 def generate_data(flag: DataFlag, length: int):
-    # n = random.randint(1, 20)
+    """Generates list of given data type and size equal to length"""
     lst = [generate_element(flag) for _ in range(length)]
     return lst
 
 
 def generate_element(flag: DataFlag):
+    """Generates an element of given data type"""
     if flag == DataFlag.INT:
         return random.randint(-2147483648, 2147483647)
     elif flag == DataFlag.FLOAT:
@@ -33,10 +35,6 @@ def generate_element(flag: DataFlag):
     else:
         raise ValueError("flag should be either 0 or 1 or 2")
 
-# add hints to every function in a file
 
-
-def answer(data: list, is_reversed=False):
-    return sorted(data, reverse = is_reversed)
-
-
+def answer(data: list, is_reversed:bool=False):
+    return sorted(data, reverse=is_reversed)
