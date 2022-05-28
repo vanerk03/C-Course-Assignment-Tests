@@ -5,6 +5,7 @@ import subprocess
 from abc import ABC, abstractmethod
 from pathlib import Path
 from random import choice
+from time import time
 
 import color_log
 from colorama import Fore
@@ -14,8 +15,8 @@ from solve import solve
 main_name = "All tests"
 
 
-def generate_case(flag: DataFlag, is_reversed: bool):
-    return ValidCase(generate_data(flag, 50), is_reversed, flag)
+def generate_case(flag: DataFlag, is_reversed: bool, sz:int=50):
+    return ValidCase(generate_data(flag, sz), is_reversed, flag)
 
 
 """
@@ -195,6 +196,35 @@ class ReadableTests(ValidGroup):
             ]
 
 
+class TimeLimitTests(ValidGroup):
+    @property
+    def name(self):
+        return "TimeLimitTests"
+
+    def _run_case(self, case: ValidCase, inp: Path, out: Path):
+
+        with open(inp, "w") as inp_f:
+            inp_f.write(str(case))
+        
+        start = time()
+        subprocess.call([program_name, str(inp), str(out)])
+        end = time()
+        print(" " * 20 + "Finished in:", round(end - start, 4), "sec")
+        try:
+            _sl = solve(out, case.type, case.is_reversed)
+        except Exception:
+            raise ErrorExc
+
+        if case.out == _sl:
+            return True
+        else:
+            raise ErrorExc
+
+    def load(self):
+        flag = DataFlag.INT
+        is_reversed = True
+        self.entities = [generate_case(flag, is_reversed, 5_000_000) for _ in range(5)]
+
 class RandomIntTests(ValidGroup):
     @property
     def name(self):
@@ -268,7 +298,8 @@ class MainTestGroup(ValidGroup):
     def load(self):
         self.entities = [
             ReadableTests,
-            RandomIntTests
+            RandomIntTests,
+            TimeLimitTests
         ]
         if not no_float:
             self.entities += [
