@@ -4,17 +4,15 @@ import os
 import subprocess
 from abc import ABC, abstractmethod
 from pathlib import Path
-from random import choice
-from time import time
 
 import color_log
 from colorama import Fore
-from generate import generate_data, answer
-from solve import solve
+from generate import generate_data, convert_data_to_string
 
 main_name = "All tests"
 
-def generate_case(sz:int=50):
+
+def generate_case(sz: int = 50):
     return ValidCase(generate_data(sz))
 
 
@@ -35,6 +33,11 @@ class TrueExc(Exception):
 
 class ErrorExc(Exception):
     pass
+
+
+class ErrorFormatExc(Exception):
+    def __init__(self, message):
+        self.message = message
 
 
 class Case:
@@ -91,8 +94,14 @@ class Group(ABC):
                     print(color_log.RED(f"Test is saved in {inp} / {out}"))
                     exit()
 
+                except ErrorFormatExc as e:
+                    print(color_log.RED(f"FAILED format exception \nComment: {e.message}"))
+                    print(color_log.RED(f"Test is saved in {inp} / {out}"))
+                    exit()
+
+
             elif issubclass(ent, Group):
-                _ent = ent(level=self.level + 1)
+                _ent = ent(level = self.level + 1)
                 _ent.load()
                 _ent.run()
 
@@ -126,10 +135,72 @@ Personal classes
 no_error = False
 format_check = False
 
+
+# Readable tests
+class SolvedCase(Case):
+    def __init__(self, inp: str, out: str):
+        # Contain correct inp and out data in valid string format.
+        self.inp = inp
+        self.out = out
+
+
+@is_main_group
+class ReadableTests(Group):
+    @property
+    def name(self):
+        return "Readable Tests"
+
+    def _run_case(self, case: SolvedCase, inp: Path, out: Path):
+        with open(inp, "w") as inp_f, open(out, 'w'):
+            inp_f.write(case.inp)
+
+        subprocess.call([program_name, str(inp), str(out)])
+
+        with open(out, 'r') as out_f:
+            ans = out_f.read()
+
+        # correct output
+        ans = ans.strip().split('\n')
+        if len(ans[0]) == 2:
+            if ans[0] != '-' or not ans[1].isdigit():
+                raise ErrorFormatExc('first symbol uncorrected')
+        elif len(ans[0]) != 1:
+            raise ErrorFormatExc('first symbol uncorrected')
+        elif not ans[0].isdigit():
+            raise ErrorFormatExc('first symbol uncorrected')
+
+        for i in ans[1:]:
+            if len(i) != 1:
+                raise ErrorFormatExc('string has more one symbol')
+            if not i.isdigit():
+                raise ErrorFormatExc('symbol in string is not digit')
+
+        if case.out == ''.join(ans):
+            return True
+        else:
+            raise ErrorExc
+
+    def load(self):
+        self.entities = [
+            SolvedCase(convert_data_to_string([232, '+', 6, '-', -1]), '12'),
+            SolvedCase(convert_data_to_string([1, '+', 1]), '2'),
+            SolvedCase(convert_data_to_string([1, '-', 1]), '0'),
+            SolvedCase(convert_data_to_string([1, '+', 1, '-', -1]), '3'),
+            SolvedCase(convert_data_to_string([2, '*', 3]), '6'),
+            SolvedCase(convert_data_to_string([2, '*', 0]), '0'),
+            SolvedCase(convert_data_to_string([0, '*', 0]), '0'),
+            SolvedCase(convert_data_to_string([0, '/', 1]), '0'),
+            SolvedCase(convert_data_to_string([2, '/', 1]), '2'),
+            SolvedCase(convert_data_to_string([2, '/', 2]), '1'),
+            # todo: need more test
+        ]
+
+
 class ValidCase(Case):
     def __init__(self, data: list[int | str]):
         self.data = data
-        self.out = None # To fix
+        self.out = None  # To fix
+        # :Володя: Фикси, я хз что ты тут хотел сделать
 
     def __str__(self):
         return "\n".join(map(str, self.data))
@@ -143,26 +214,20 @@ class ValidGroup(Group, ABC):
 
         subprocess.call([program_name, str(inp), str(out)])
 
-        try:
-            _sl = solve(out, case.type, case.is_reversed)
-        except Exception:
-            raise ErrorExc
+        # :Володя: Мне пока что не понятна суть происходящего с answer() и solve()
+        # todo проверка на int на выходе под комментом 'correct output'
 
-        if case.out == _sl:
-            return True
-        else:
-            raise ErrorExc
+        # try:
+        #     pass
+        #     # _sl = solve(out, case.type, case.is_reversed)
+        # except Exception:
+        #     raise ErrorExc
+        #
+        # if case.out == _sl:
+        #     return True
+        # else:
+        #     raise ErrorExc
 
-
-class ReadableTests(ValidGroup):
-    @property
-    def name(self):
-        return "Readable Tests"
-
-    def load(self):
-        self.entities = [
-            # ValidCase([], True, DataFlag.INT)
-        ]
 
 class RandomTests(ValidGroup):
     @property
@@ -174,25 +239,6 @@ class RandomTests(ValidGroup):
         self.entities = [generate_case(is_reversed) for _ in range(100)]
 
 
-class Random(ValidGroup):
-    """
-    This class generates tests
-    """
-
-    def __init__(self, number_of_tests: int, level=0):
-        self.number_of_tests = number_of_tests
-        super().__init__(level)
-        self.name = "Random tests"
-
-    @property
-    def name(self):
-        return "Random tests"
-
-    def load(self):
-        self.entities = [generate_case(
-            self.flag, self.is_reversed) for _ in range(100)]
-
-
 @is_main_group
 class MainTestGroup(ValidGroup):
     @property
@@ -201,7 +247,6 @@ class MainTestGroup(ValidGroup):
 
     def load(self):
         self.entities = [
-            ReadableTests,
         ]
 
 
@@ -226,9 +271,9 @@ class InvalidParams(Group, ABC):
         for i in range(case.count):
             args.append("qweasdqweasd")
 
-        print(Fore.LIGHTBLACK_EX, end='')
+        print(Fore.LIGHTBLACK_EX, end = '')
         out = subprocess.call(args)
-        print(Fore.RESET, end='')
+        print(Fore.RESET, end = '')
         if out != 4:
             print(color_log.RED(
                 f"Excepted return code 4, on command {' '.join(args)}"))
@@ -251,9 +296,9 @@ class CantFindFile(ReadableTests):
     def _run_case(self, case: ValidCase, inp: Path, out: Path):
         args = [str(program_name), str(working_directory.joinpath("qweqweasd.txt")),
                 str(working_directory.joinpath("asdasdasdasd.txt"))]
-        print(Fore.LIGHTBLACK_EX, end='')
+        print(Fore.LIGHTBLACK_EX, end = '')
         out = subprocess.call(args)
-        print(Fore.RESET, end='')
+        print(Fore.RESET, end = '')
         if out != 1:
             print(color_log.RED(
                 f"Excepted return code 1, on command {' '.join(args)}"))
@@ -268,7 +313,7 @@ class ConsoleOutput(ReadableTests):
             inp_f.write(str(case))
 
         subprocess.call([str(program_name), str(inp), str(out)],
-                        stdout=working_directory.joinpath("stdout.txt").open("w"))
+                        stdout = working_directory.joinpath("stdout.txt").open("w"))
 
         with working_directory.joinpath("stdout.txt").open("r") as stdout:
             if len(stdout.read()) != 0:
