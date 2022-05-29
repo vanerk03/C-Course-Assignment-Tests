@@ -12,8 +12,6 @@ try:
     program_name = sys.argv[1]
     if '-ner' in sys.argv:
         collect.no_error = True
-    if '-fm' in sys.argv:
-        collect.format_check = True
 
 
 except IndexError:
