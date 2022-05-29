@@ -9,14 +9,13 @@ from time import time
 
 import color_log
 from colorama import Fore
-from generate import generate_data, DataFlag, answer
+from generate import generate_data, answer
 from solve import solve
 
 main_name = "All tests"
 
-
-def generate_case(flag: DataFlag, is_reversed: bool, sz:int=50):
-    return ValidCase(generate_data(flag, sz), is_reversed, flag)
+def generate_case(sz:int=50):
+    return ValidCase(generate_data(sz))
 
 
 """
@@ -74,7 +73,6 @@ class Group(ABC):
         2. Call _run().
         3. Catch exceptions and wrong answerss. After 1 failed test, testing will resume.
         """
-        global current_error
         print("   " * self.level + self.name + ":")
 
         for ent in self.entities:
@@ -125,29 +123,16 @@ def is_main_group(group_class):
 """
 Personal classes
 """
-no_float = False
-no_phonebook = False
 no_error = False
 format_check = False
 
-
 class ValidCase(Case):
-    def __init__(self, data: list[int | float | tuple[str, str, str, int]], is_reversed: bool, _type: DataFlag):
+    def __init__(self, data: list[int | str]):
         self.data = data
-        self.is_reversed = is_reversed
-        self.out = answer(data, is_reversed)
-        self.type = _type
+        self.out = None # To fix
 
-    def __repr__(self):
-        if self.type == DataFlag.PHONEBOOK:
-            string = "\n".join(map(lambda x: " ".join(map(str, x)), self.data))
-        else:
-            string = "\n".join(map(str, self.data))
-
-        return f"{self.type.value}\n" \
-               f"{'descending' if self.is_reversed else 'ascending'}\n" \
-               f"{len(self.data)}\n" \
-               f"{string}"
+    def __str__(self):
+        return "\n".join(map(str, self.data))
 
 
 class ValidGroup(Group, ABC):
@@ -176,97 +161,17 @@ class ReadableTests(ValidGroup):
 
     def load(self):
         self.entities = [
-            ValidCase([1, 10, 100], True, DataFlag.INT),
-            ValidCase([3, 2, 1], False, DataFlag.INT),
-            ValidCase([5, 6, 3], False, DataFlag.INT),
-            ValidCase([], False, DataFlag.INT),
-            ValidCase([], True, DataFlag.INT)
+            # ValidCase([], True, DataFlag.INT)
         ]
 
-        if not no_phonebook:
-            self.entities += [
-                ValidCase([("aa", "bb", "cc", 2), ("aa", "bb",
-                          "cc", 1)], True, DataFlag.PHONEBOOK),
-                ValidCase([("AA", "BB", "CC", 2), ("aa", "bb", "cc", 1)],
-                          False, DataFlag.PHONEBOOK),
-                ValidCase([("Elon", "Musk", "Johnnovich", 2281337420), ("Nazarov", "Vladimir", "Alexeevich", 420420420)], True,
-                          DataFlag.PHONEBOOK),
-                ValidCase([("Skakov", "Pavlik", "Sergeich", 1188811), ("Kanistr", "Yoda", "Anatolyevich", 99999999999)], False,
-                          DataFlag.PHONEBOOK)
-            ]
-
-
-class TimeLimitTests(ValidGroup):
-    @property
-    def name(self):
-        return "TimeLimitTests"
-
-    def _run_case(self, case: ValidCase, inp: Path, out: Path):
-
-        with open(inp, "w") as inp_f:
-            inp_f.write(str(case))
-        
-        start = time()
-        subprocess.call([program_name, str(inp), str(out)])
-        end = time()
-        print(" " * 20 + "Finished in:", round(end - start, 4), "sec")
-        try:
-            _sl = solve(out, case.type, case.is_reversed)
-        except Exception:
-            raise ErrorExc
-
-        if case.out == _sl:
-            return True
-        else:
-            raise ErrorExc
-
-    def load(self):
-        flag = DataFlag.INT
-        is_reversed = True
-        self.entities = [generate_case(flag, is_reversed, 5_000_000) for _ in range(5)]
-
-class RandomIntTests(ValidGroup):
+class RandomTests(ValidGroup):
     @property
     def name(self):
         return "Low Numbers"
 
     def load(self):
-        flag = DataFlag.INT
         is_reversed = False
-        self.entities = [generate_case(flag, is_reversed) for _ in range(100)]
-
-
-class RandomFloatTests(ValidGroup):
-    @property
-    def name(self):
-        return "Random Float Tests"
-
-    def load(self):
-        flag = DataFlag.FLOAT
-        is_reversed = False
-        self.entities = [generate_case(flag, is_reversed) for _ in range(100)]
-
-
-class RandomFloatReversedTests(ValidGroup):
-    @property
-    def name(self):
-        return "Random Reversed Float Tests"
-
-    def load(self):
-        flag = DataFlag.FLOAT
-        is_reversed = True
-        self.entities = [generate_case(flag, is_reversed) for _ in range(100)]
-
-
-class RandomPhonebookReversedTests(ValidGroup):
-    @property
-    def name(self):
-        return "Random Reversed Phonebook Tests"
-
-    def load(self):
-        flag = DataFlag.PHONEBOOK
-        is_reversed = True
-        self.entities = [generate_case(flag, is_reversed) for _ in range(100)]
+        self.entities = [generate_case(is_reversed) for _ in range(100)]
 
 
 class Random(ValidGroup):
@@ -274,11 +179,10 @@ class Random(ValidGroup):
     This class generates tests
     """
 
-    def __init__(self, number_of_tests: int, flag: DataFlag, level=0):
+    def __init__(self, number_of_tests: int, level=0):
         self.number_of_tests = number_of_tests
-        self.is_reversed = choice([True, False])
-        self.flag = flag
         super().__init__(level)
+        self.name = "Random tests"
 
     @property
     def name(self):
@@ -298,18 +202,7 @@ class MainTestGroup(ValidGroup):
     def load(self):
         self.entities = [
             ReadableTests,
-            RandomIntTests,
-            TimeLimitTests
         ]
-        if not no_float:
-            self.entities += [
-                RandomFloatTests,
-                RandomFloatReversedTests
-            ]
-        if not no_phonebook:
-            self.entities += [
-                RandomPhonebookReversedTests,
-            ]
 
 
 # Error handling
@@ -343,10 +236,10 @@ class InvalidParams(Group, ABC):
 
     def load(self):
         self.entities = [
-            InvalidParamCase(0, [1, 10, 100], True, DataFlag.INT),
-            InvalidParamCase(1, [1, 10, 100], True, DataFlag.INT),
-            InvalidParamCase(3, [1, 10, 100], True, DataFlag.INT),
-            InvalidParamCase(4, [1, 10, 100], True, DataFlag.INT)
+            # InvalidParamCase(0, [1, 10, 100], True, DataFlag.INT),
+            # InvalidParamCase(1, [1, 10, 100], True, DataFlag.INT),
+            # InvalidParamCase(3, [1, 10, 100], True, DataFlag.INT),
+            # InvalidParamCase(4, [1, 10, 100], True, DataFlag.INT)
         ]
 
 
@@ -368,9 +261,7 @@ class CantFindFile(ReadableTests):
 
 
 class ConsoleOutput(ReadableTests):
-    @property
-    def name(self):
-        return "Console output"
+    name = "Console output"
 
     def _run_case(self, case: ValidCase, inp: Path, out: Path):
         with open(inp, "w") as inp_f:

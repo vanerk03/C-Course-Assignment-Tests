@@ -1,40 +1,21 @@
 """This class is responsible for providing random data for test cases and solving"""
-import enum
 import random
-import json
 
-from pathlib import Path
-
-testing_directory = Path(__file__).parent
-with testing_directory.joinpath("words.json").open("r") as file:
-    WORD_LIST = json.load(file)
-
-
-class DataFlag(enum.Enum):
-    """Sorting flags"""
-    INT = "int"
-    FLOAT = "float"
-    PHONEBOOK = "phonebook"
-
-
-def generate_data(flag: DataFlag, length: int):
+def generate_data(length: int):
     """Generates list of given data type and size equal to length"""
-    lst = [generate_element(flag) for _ in range(length)]
+    lst = [generate_element(3, 3), "+", generate_element(3, 3)]
     return lst
 
+"""
+#ToDo:
+create
+context-free grammar that allows only certain symbols:
++, -, *, /, ~, %, <, <=, >, >=, ==, !=, _
+"""
 
-def generate_element(flag: DataFlag):
-    """Generates an element of given data type"""
-    if flag == DataFlag.INT:
-        return random.randint(-2147483648, 2147483647)
-    elif flag == DataFlag.FLOAT:
-        return random.randint(1, 1000000) / (10 ** random.randint(0, 6))
-    elif flag == DataFlag.PHONEBOOK:
-        return (random.choice(WORD_LIST)[:20], random.choice(WORD_LIST)[:20],
-                random.choice(WORD_LIST)[:20], random.randint(1, 10 ** 11 - 1))
-    else:
-        raise ValueError("flag should be either 0 or 1 or 2")
-
+def generate_element(min_digits: int, max_digits: int) -> int:
+    """Generates and returns an element in range [-10**mindigits, 10**max_digits]"""
+    return random.randint(-10**min_digits, 10**max_digits)
 
 def answer(data: list, is_reversed: bool = False):
     return sorted(data, reverse=is_reversed)
