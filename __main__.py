@@ -4,6 +4,7 @@ from pathlib import Path
 import collect
 from subprocess import call
 
+call(["git", "checkout", "hw3"], cwd='SkakovLabO4ka')
 call(["git", "pull"], cwd='SkakovLabO4ka')
 
 # ----INIT----
