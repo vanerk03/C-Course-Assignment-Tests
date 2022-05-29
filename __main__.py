@@ -2,10 +2,8 @@ import os
 import sys
 from pathlib import Path
 import collect
-from subprocess import call
 
-call(["git", "checkout", "hw3"], cwd='SkakovLabO4ka')
-call(["git", "pull"], cwd='SkakovLabO4ka')
+import updater
 
 # ----INIT----
 # parsing args, write on module argparse
