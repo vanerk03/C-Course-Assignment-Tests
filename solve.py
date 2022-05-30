@@ -24,6 +24,7 @@ table = {
 }
 
 # the technical requirement is not clear, therefore solve return just int and not list[int]
+
 def solve(lst: list[int | str]) -> int:
     stack = deque()
     for x in lst:
@@ -32,7 +33,10 @@ def solve(lst: list[int | str]) -> int:
             tmp = []
             for _ in range(arity):
                 tmp.append(stack.pop())
-            stack.append(oper(*reversed(tmp)))
+            try:
+                stack.append(oper(*reversed(tmp)))
+            except (ValueError, ZeroDivisionError):
+                return None
         else:
             stack.append(x)
     return stack.pop()
