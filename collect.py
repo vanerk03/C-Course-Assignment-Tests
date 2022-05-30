@@ -20,6 +20,7 @@ def generate_case(sz: int = 50):
 Special classes
 """
 working_directory = Path(os.getcwd())
+testing_directory = Path(__file__).parent
 program_name: Path
 
 
@@ -133,7 +134,6 @@ def is_main_group(group_class):
 Personal classes
 """
 no_error = False
-format_check = False
 
 
 # Readable tests
@@ -350,13 +350,12 @@ class CheckClangFormat(Group, ABC):
         return ".clang-format check | not for all"
 
     def _run_case(self, case: Case, inp: Path, out: Path):
-        subprocess.call(
-            ['clang-format', '-style=file', '--dry-run', '-Werror', '.\main.cpp', '.\phonebook.cpp', '.\quicksort.h',
-             '.\phonebook.h'])
+        args = ['clang-format', '-style=file', '--dry-run', '-Werror', '.\main.cpp', '.\phonebook.cpp', '.\quicksort.h',
+                '.\phonebook.h']
+        subprocess.call(args)
 
     def load(self):
         if not no_error:
-            if format_check:
-                self.entities = [
-                    Case()
-                ]
+            self.entities = [
+                Case()
+            ]
