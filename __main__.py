@@ -1,24 +1,15 @@
-import os
-import sys
-from pathlib import Path
-import collect
+from subprocess import PIPE, Popen
 
-import updater
+# воронка с master на ветку с актуальной дз.
 
-# ----INIT----
-# parsing args, write in module argparse
-program_name = "main"
-try:
-    program_name = sys.argv[1]
-    if '-ner' in sys.argv:
-        collect.no_error = True
+actual_branch = 'hw4'
+ex = 0
+print(f'SkakovLabO4ka {actual_branch}')
 
-
-except IndexError:
-    exit("Not enough arguments")
-
-working_directory = Path(os.getcwd())
-testing_directory = Path(__file__).parent
-
-collect.program_name = working_directory.joinpath(program_name)
-collect.main_group.run()
+branch, _ = Popen(["git", "branch"], cwd='SkakovLabO4ka', stdout = PIPE, stderr = PIPE).communicate()
+for i in branch.decode().split('\n'):
+    if actual_branch not in i and '*' in i:
+        out, _ = Popen(["git", "checkout", actual_branch], cwd = 'SkakovLabO4ka', stdout = PIPE, stderr = PIPE).communicate()
+        print(f'Change branch to {actual_branch}.')
+        print('Please restart the program.')
+        exit()
