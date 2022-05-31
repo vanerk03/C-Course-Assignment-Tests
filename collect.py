@@ -7,14 +7,9 @@ from pathlib import Path
 
 import color_log
 from colorama import Fore
-from generate import generate_data, convert_data_to_string
+from generate import convert_data_to_string, generate_case, solve
 
 main_name = "All tests"
-
-
-def generate_case(sz: int = 50):
-    return ValidCase(generate_data(sz))
-
 
 """
 Special classes
@@ -50,7 +45,6 @@ class Group(ABC):
     This structure is a superclass that stores both groups and cases. 
     And run cases.
     """
-
     @property
     @abstractmethod
     def name(self):
@@ -139,7 +133,6 @@ no_error = False
 # Readable tests
 class SolvedCase(Case):
     def __init__(self, inp: str, out: str):
-        # Contain correct inp and out data in valid string format.
         self.inp = inp
         self.out = out
 
@@ -192,15 +185,14 @@ class ReadableTests(Group):
             SolvedCase(convert_data_to_string([0, '/', 1]), '0'),
             SolvedCase(convert_data_to_string([2, '/', 1]), '2'),
             SolvedCase(convert_data_to_string([2, '/', 2]), '1'),
-            # todo: need more test
+            # todo: need more tests
         ]
 
 
 class ValidCase(Case):
     def __init__(self, data: list[int | str]):
         self.data = data
-        self.out = None  # To fix
-        # :Володя: Фикси, я хз что ты тут хотел сделать
+        self.correct_answer = solve(data)
 
     def __str__(self):
         return "\n".join(map(str, self.data))
@@ -213,21 +205,10 @@ class ValidGroup(Group, ABC):
             inp_f.write(str(case))
 
         subprocess.call([program_name, str(inp), str(out)])
-
-        # :Володя: Мне пока что не понятна суть происходящего с answer() и solve()
-        # todo проверка на int на выходе под комментом 'correct output'
-
-        # try:
-        #     pass
-        #     # _sl = solve(out, case.type, case.is_reversed)
-        # except Exception:
-        #     raise ErrorExc
-        #
-        # if case.out == _sl:
-        #     return True
-        # else:
-        #     raise ErrorExc
-
+        with open(out) as user_output_file:
+            user_output = list(map(int, user_output_file.readlines()))
+        
+        return user_output == case.correct_answer 
 
 class RandomTests(ValidGroup):
     @property
@@ -235,8 +216,7 @@ class RandomTests(ValidGroup):
         return "Low Numbers"
 
     def load(self):
-        is_reversed = False
-        self.entities = [generate_case(is_reversed) for _ in range(100)]
+        self.entities = [generate_case(5) for _ in range(100)]
 
 
 @is_main_group
@@ -247,8 +227,8 @@ class MainTestGroup(ValidGroup):
 
     def load(self):
         self.entities = [
+            RandomTests,
         ]
-
 
 # Error handling
 class InvalidParamCase(ValidCase):

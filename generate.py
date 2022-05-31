@@ -2,10 +2,10 @@
 This class is responsible for providing random data for test cases and solving
 
 cf grammar transitions
-1 -> 1 + 1
-1 -> 1 * 1
-1 -> 1 / 1
-1 -> 1 % 1
+1 -> 1 1 +
+1 -> 1 1 -
+1 -> 1 1 /
+1 -> 1 1 %
 
 1 -> 1 ~
 1 -> 1 _
@@ -16,11 +16,12 @@ cf grammar transitions
 from collections import namedtuple
 import random
 from math import sqrt
+from collect import ValidCase
 
-"""
-#ToDo:
 
-"""
+def generate_case(sz: int = 50):
+    return ValidCase(generate_data(sz))
+
 Operation = namedtuple("Operation", ["arity", "oper"])
 
 table = {
@@ -96,13 +97,45 @@ def generate_element(min_digits: int, max_digits: int) -> int:
     """Generates and returns an element in range [-10**mindigits, 10**max_digits]"""
     return random.randint(0, 10 ** max_digits)
 
+from collections import namedtuple, deque
+from math import sqrt
+from time import time
 
-def answer(data: list):
-    """data - list from function generated data"""
-    # todo
-    return
+Operation = namedtuple("Operation", ["arity", "oper"])
 
+table = {
+    "+" : Operation(2, lambda x, y: x + y),
+    "-" : Operation(2, lambda x, y: x - y),
+    "*" : Operation(2, lambda x, y: x * y),
+    "/" : Operation(2, lambda x, y: x // y),
+    "%" : Operation(2, lambda x, y: x % y),
+    
+    "~" : Operation(1, lambda x: int(sqrt(x))),
+    "_" : Operation(1, lambda x: -x),
 
-# dbg
-if __name__ == "__main__":
-    pass
+    # not clear
+    # "<" : None,
+    # "<=": None,
+    # ">" : None,
+    # ">=": None,
+    # "==": None,
+    # "!=": None,
+}
+
+# the technical requirement is not clear, therefore solve return just int and not list[int]
+
+def solve(lst: list[int | str]) -> int:
+    stack = deque()
+    for x in lst:
+        if type(x) == str:
+            arity, oper = table[x]
+            tmp = []
+            for _ in range(arity):
+                tmp.append(stack.pop())
+            try:
+                stack.append(oper(*reversed(tmp)))
+            except (ValueError, ZeroDivisionError):
+                return None
+        else:
+            stack.append(x)
+    return list(stack)
