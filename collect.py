@@ -7,7 +7,7 @@ from pathlib import Path
 
 import color_log
 from colorama import Fore
-from generate import convert_data_to_string, generate_case, solve
+from generate import convert_data_to_string, generate_data, solve
 
 main_name = "All tests"
 
@@ -18,6 +18,9 @@ working_directory = Path(os.getcwd())
 testing_directory = Path(__file__).parent
 program_name: Path
 
+def generate_case(sz: int = 50, digit_cnt: int = 1):
+    tmp = generate_data(sz, digit_cnt, digit_cnt)
+    return ValidCase(tmp)
 
 class StopExc(Exception):
     pass
@@ -137,56 +140,56 @@ class SolvedCase(Case):
         self.out = out
 
 
-@is_main_group
-class ReadableTests(Group):
-    @property
-    def name(self):
-        return "Readable Tests"
+# @is_main_group
+# class ReadableTests(Group):
+#     @property
+#     def name(self):
+#         return "Readable Tests"
+    
+#     def _run_case(self, case: SolvedCase, inp: Path, out: Path):
+#         with open(inp, "w") as inp_f, open(out, 'w'):
+#             inp_f.write(case.inp)
 
-    def _run_case(self, case: SolvedCase, inp: Path, out: Path):
-        with open(inp, "w") as inp_f, open(out, 'w'):
-            inp_f.write(case.inp)
+#         subprocess.call([program_name, str(inp), str(out)])
 
-        subprocess.call([program_name, str(inp), str(out)])
+#         with open(out, 'r') as out_f:
+#             ans = out_f.read()
 
-        with open(out, 'r') as out_f:
-            ans = out_f.read()
+#         # correct output
+#         ans = ans.strip().split('\n')
+#         if len(ans[0]) == 2:
+#             if ans[0] != '-' or not ans[1].isdigit():
+#                 raise ErrorFormatExc('first symbol is incorrect')
+#         elif len(ans[0]) != 1:
+#             raise ErrorFormatExc('first symbol is incorrect')
+#         elif not ans[0].isdigit():
+#             raise ErrorFormatExc('first symbol is incorrect')
 
-        # correct output
-        ans = ans.strip().split('\n')
-        if len(ans[0]) == 2:
-            if ans[0] != '-' or not ans[1].isdigit():
-                raise ErrorFormatExc('first symbol uncorrected')
-        elif len(ans[0]) != 1:
-            raise ErrorFormatExc('first symbol uncorrected')
-        elif not ans[0].isdigit():
-            raise ErrorFormatExc('first symbol uncorrected')
+#         for i in ans[1:]:
+#             if len(i) != 1:
+#                 raise ErrorFormatExc('string has more one symbol')
+#             if not i.isdigit():
+#                 raise ErrorFormatExc('symbol in string is not digit')
 
-        for i in ans[1:]:
-            if len(i) != 1:
-                raise ErrorFormatExc('string has more one symbol')
-            if not i.isdigit():
-                raise ErrorFormatExc('symbol in string is not digit')
+#         if case.out == ''.join(ans):
+#             return True
+#         else:
+#             raise ErrorExc
 
-        if case.out == ''.join(ans):
-            return True
-        else:
-            raise ErrorExc
-
-    def load(self):
-        self.entities = [
-            SolvedCase(convert_data_to_string([232, '+', 6, '-', -1]), '12'),
-            SolvedCase(convert_data_to_string([1, '+', 1]), '2'),
-            SolvedCase(convert_data_to_string([1, '-', 1]), '0'),
-            SolvedCase(convert_data_to_string([1, '+', 1, '-', -1]), '3'),
-            SolvedCase(convert_data_to_string([2, '*', 3]), '6'),
-            SolvedCase(convert_data_to_string([2, '*', 0]), '0'),
-            SolvedCase(convert_data_to_string([0, '*', 0]), '0'),
-            SolvedCase(convert_data_to_string([0, '/', 1]), '0'),
-            SolvedCase(convert_data_to_string([2, '/', 1]), '2'),
-            SolvedCase(convert_data_to_string([2, '/', 2]), '1'),
-            # todo: need more tests
-        ]
+#     def load(self):
+#         self.entities = [
+#             SolvedCase(convert_data_to_string([232, '+', 6, '-', -1]), '12'),
+#             SolvedCase(convert_data_to_string([1, '+', 1]), '2'),
+#             SolvedCase(convert_data_to_string([1, '-', 1]), '0'),
+#             SolvedCase(convert_data_to_string([1, '+', 1, '-', -1]), '3'),
+#             SolvedCase(convert_data_to_string([2, '*', 3]), '6'),
+#             SolvedCase(convert_data_to_string([2, '*', 0]), '0'),
+#             SolvedCase(convert_data_to_string([0, '*', 0]), '0'),
+#             SolvedCase(convert_data_to_string([0, '/', 1]), '0'),
+#             SolvedCase(convert_data_to_string([2, '/', 1]), '2'),
+#             SolvedCase(convert_data_to_string([2, '/', 2]), '1'),
+#             # todo: need more tests
+#         ]
 
 
 class ValidCase(Case):
@@ -206,17 +209,20 @@ class ValidGroup(Group, ABC):
 
         subprocess.call([program_name, str(inp), str(out)])
         with open(out) as user_output_file:
-            user_output = list(map(int, user_output_file.readlines()))
-        
+            user_output = list(map(lambda x: x.rstrip() if x.rstrip() == "NaN" \
+                else int(x), user_output_file.readlines()))
         return user_output == case.correct_answer 
 
 class RandomTests(ValidGroup):
+    """
+    Contains randomly generated tests, for details: check generate.py 
+    """
     @property
     def name(self):
-        return "Low Numbers"
+        return "Random Tests"
 
     def load(self):
-        self.entities = [generate_case(5) for _ in range(100)]
+        self.entities = [generate_case(10, 4) for _ in range(100)]
 
 
 @is_main_group
@@ -228,6 +234,7 @@ class MainTestGroup(ValidGroup):
     def load(self):
         self.entities = [
             RandomTests,
+            # ReadableTests,
         ]
 
 # Error handling
@@ -268,74 +275,74 @@ class InvalidParams(Group, ABC):
         ]
 
 
-class CantFindFile(ReadableTests):
-    @property
-    def name(self):
-        return "FileNotFound"
+# class CantFindFile(ReadableTests):
+#     @property
+#     def name(self):
+#         return "FileNotFound"
 
-    def _run_case(self, case: ValidCase, inp: Path, out: Path):
-        args = [str(program_name), str(working_directory.joinpath("qweqweasd.txt")),
-                str(working_directory.joinpath("asdasdasdasd.txt"))]
-        print(Fore.LIGHTBLACK_EX, end = '')
-        out = subprocess.call(args)
-        print(Fore.RESET, end = '')
-        if out != 1:
-            print(color_log.RED(
-                f"Excepted return code 1, on command {' '.join(args)}"))
-            raise ErrorExc
-
-
-class ConsoleOutput(ReadableTests):
-    name = "Console output"
-
-    def _run_case(self, case: ValidCase, inp: Path, out: Path):
-        with open(inp, "w") as inp_f:
-            inp_f.write(str(case))
-
-        subprocess.call([str(program_name), str(inp), str(out)],
-                        stdout = working_directory.joinpath("stdout.txt").open("w"))
-
-        with working_directory.joinpath("stdout.txt").open("r") as stdout:
-            if len(stdout.read()) != 0:
-                print(color_log.RED(f"Result should not be written in stdout.txt"))
-                raise ErrorExc
-        try:
-            os.remove("stdout.txt")
-        except FileNotFoundError:
-            pass
+#     def _run_case(self, case: ValidCase, inp: Path, out: Path):
+#         args = [str(program_name), str(working_directory.joinpath("qweqweasd.txt")),
+#                 str(working_directory.joinpath("asdasdasdasd.txt"))]
+#         print(Fore.LIGHTBLACK_EX, end = '')
+#         out = subprocess.call(args)
+#         print(Fore.RESET, end = '')
+#         if out != 1:
+#             print(color_log.RED(
+#                 f"Excepted return code 1, on command {' '.join(args)}"))
+#             raise ErrorExc
 
 
-@is_main_group
-class InvalidGroup(Group, ABC):
-    @property
-    def name(self):
-        return "Errors testing"
+# class ConsoleOutput(ReadableTests):
+#     name = "Console output"
 
-    def _run_case(self, case: Case, inp: Path, out: Path):
-        pass
+#     def _run_case(self, case: ValidCase, inp: Path, out: Path):
+#         with open(inp, "w") as inp_f:
+#             inp_f.write(str(case))
 
-    def load(self):
-        if not no_error:
-            self.entities = [
-                InvalidParams,
-                CantFindFile,
-                ConsoleOutput
-            ]
+#         subprocess.call([str(program_name), str(inp), str(out)],
+#                         stdout = working_directory.joinpath("stdout.txt").open("w"))
+
+#         with working_directory.joinpath("stdout.txt").open("r") as stdout:
+#             if len(stdout.read()) != 0:
+#                 print(color_log.RED(f"Result should not be written in stdout.txt"))
+#                 raise ErrorExc
+#         try:
+#             os.remove("stdout.txt")
+#         except FileNotFoundError:
+#             pass
 
 
-@is_main_group
-class CheckClangFormat(Group, ABC):
-    @property
-    def name(self):
-        return ".clang-format check | not for all"
+# @is_main_group
+# class InvalidGroup(Group, ABC):
+#     @property
+#     def name(self):
+#         return "Errors testing"
 
-    def _run_case(self, case: Case, inp: Path, out: Path):
-        args = ['clang-format', '-style=file', '--dry-run', '-Werror', '.\main.cpp', '.\phonebook.cpp', '.\quicksort.h',
-                '.\phonebook.h']
-        subprocess.call(args)
+#     def _run_case(self, case: Case, inp: Path, out: Path):
+#         pass
 
-    def load(self):
-        if not no_error:
-            self.entities = [
-                Case()
-            ]
+#     def load(self):
+#         if not no_error:
+#             self.entities = [
+#                 InvalidParams,
+#                 CantFindFile,
+#                 ConsoleOutput
+#             ]
+
+
+# @is_main_group
+# class CheckClangFormat(Group, ABC):
+#     @property
+#     def name(self):
+#         return ".clang-format check | not for all"
+
+#     def _run_case(self, case: Case, inp: Path, out: Path):
+#         args = ['clang-format', '-style=file', '--dry-run', '-Werror', '.\main.cpp', '.\phonebook.cpp', '.\quicksort.h',
+#                 '.\phonebook.h']
+#         subprocess.call(args)
+
+#     def load(self):
+#         if not no_error:
+#             self.entities = [
+#                 Case()
+#             ]

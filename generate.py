@@ -13,16 +13,38 @@ cf grammar transitions
 1 -> number
 """
 
+from collections import namedtuple, deque
+from time import time
 from collections import namedtuple
 import random
 from math import sqrt
-from collect import ValidCase
 
-
-def generate_case(sz: int = 50):
-    return ValidCase(generate_data(sz))
 
 Operation = namedtuple("Operation", ["arity", "oper"])
+class NaN(int):
+    def __ne__(self, __o: object) -> bool:
+        return True
+
+    def __eq__(self, __o: object) -> bool:
+        return False
+    
+    def __ge__(self, __x: int) -> bool:
+        return False
+
+    def __le__(self, __x: int) -> bool:
+        return False
+    
+    def __lt__(self, __x: int) -> bool:
+        return False
+
+    def __gt__(self, __x: int) -> bool:
+        return False
+
+    def __str__(self) -> str:
+        return "NaN"
+
+def factory(x, y, func):
+    return NaN() if type(x) == NaN or type(y) == NaN else func(x, y)
 
 table = {
     "+": Operation(2, lambda x, y: x + y),
@@ -34,13 +56,12 @@ table = {
     "~": Operation(1, lambda x: int(sqrt(x))),
     "_": Operation(1, lambda x: -x),
 
-    # not clear
-    # "<" : None,
-    # "<=": None,
-    # ">" : None,
-    # ">=": None,
-    # "==": None,
-    # "!=": None,
+    "<":  Operation(2, lambda x, y: int(x < y)),
+    "<=": Operation(2, lambda x, y: int(x <= y)),
+    ">":  Operation(2, lambda x, y: int(x > y)),
+    ">=": Operation(2, lambda x, y: int(x >= y)),
+    "==": Operation(2, lambda x, y: int(x == y)),
+    "!=": Operation(2, lambda x, y: int(x != y)),
 }
 
 
@@ -79,7 +100,7 @@ def cf_grammar_transition(lst: list[int | str]) -> list[int | str]:
     return new_lst
 
 
-def generate_data(n: int, min_digits: int = 5, max_digits: int = 5) -> list[int | str]:
+def generate_data(n: int, min_digits: int = 2, max_digits: int = 2) -> list[int | str]:
     """
     Generates expression with sz elements, where sz is approximately n <= sz < n * 2,
     and every numbers belongs lies within range [10**min_digits, 10**max_digits]
@@ -95,34 +116,8 @@ def generate_data(n: int, min_digits: int = 5, max_digits: int = 5) -> list[int 
 
 def generate_element(min_digits: int, max_digits: int) -> int:
     """Generates and returns an element in range [-10**mindigits, 10**max_digits]"""
-    return random.randint(0, 10 ** max_digits)
+    return random.randint(-10 ** min_digits, 10 ** max_digits)
 
-from collections import namedtuple, deque
-from math import sqrt
-from time import time
-
-Operation = namedtuple("Operation", ["arity", "oper"])
-
-table = {
-    "+" : Operation(2, lambda x, y: x + y),
-    "-" : Operation(2, lambda x, y: x - y),
-    "*" : Operation(2, lambda x, y: x * y),
-    "/" : Operation(2, lambda x, y: x // y),
-    "%" : Operation(2, lambda x, y: x % y),
-    
-    "~" : Operation(1, lambda x: int(sqrt(x))),
-    "_" : Operation(1, lambda x: -x),
-
-    # not clear
-    # "<" : None,
-    # "<=": None,
-    # ">" : None,
-    # ">=": None,
-    # "==": None,
-    # "!=": None,
-}
-
-# the technical requirement is not clear, therefore solve return just int and not list[int]
 
 def solve(lst: list[int | str]) -> int:
     stack = deque()
@@ -135,7 +130,7 @@ def solve(lst: list[int | str]) -> int:
             try:
                 stack.append(oper(*reversed(tmp)))
             except (ValueError, ZeroDivisionError):
-                return None
+                stack.append(NaN()) 
         else:
             stack.append(x)
     return list(stack)
