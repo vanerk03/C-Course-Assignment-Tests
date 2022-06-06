@@ -65,23 +65,7 @@ table = {
 }
 
 
-def convert_data_to_string(data) -> str:
-    """data - list from function generated data"""
-    out = ''
-    for i in data:
-        if type(i) is int:
-            for j in str(int):
-                if j == '-':
-                    out += '-'
-                else:
-                    out += j + '\n'
-        else:
-            out += i
-
-    return out + '==\n'
-
-
-def cf_grammar_transition(lst: list[int | str]) -> list[int | str]:
+def cf_grammar_transition(lst: list) -> list:
     """Generates new expression from the given"""
     new_lst = []
     one_cnt = 1
@@ -100,7 +84,7 @@ def cf_grammar_transition(lst: list[int | str]) -> list[int | str]:
     return new_lst
 
 
-def generate_data(n: int, min_digits: int = 2, max_digits: int = 2) -> list[int | str]:
+def generate_data(n: int, min_digits: int = 2, max_digits: int = 2) -> list:
     """
     Generates expression with sz elements, where sz is approximately n <= sz < n * 2,
     and every numbers belongs lies within range [10**min_digits, 10**max_digits]
@@ -119,7 +103,7 @@ def generate_element(min_digits: int, max_digits: int) -> int:
     return random.randint(-10 ** min_digits, 10 ** max_digits)
 
 
-def solve(lst: list[int | str]) -> int:
+def solve(lst: list) -> int:
     stack = deque()
     for x in lst:
         if type(x) == str:

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import color_log
 from colorama import Fore
-from generate import convert_data_to_string, generate_data, solve
+from generate import generate_data, solve
 
 main_name = "All tests"
 
@@ -18,9 +18,11 @@ working_directory = Path(os.getcwd())
 testing_directory = Path(__file__).parent
 program_name: Path
 
+
 def generate_case(sz: int = 50, digit_cnt: int = 1):
     tmp = generate_data(sz, digit_cnt, digit_cnt)
     return ValidCase(tmp)
+
 
 class StopExc(Exception):
     pass
@@ -48,6 +50,7 @@ class Group(ABC):
     This structure is a superclass that stores both groups and cases. 
     And run cases.
     """
+
     @property
     @abstractmethod
     def name(self):
@@ -145,7 +148,7 @@ class SolvedCase(Case):
 #     @property
 #     def name(self):
 #         return "Readable Tests"
-    
+
 #     def _run_case(self, case: SolvedCase, inp: Path, out: Path):
 #         with open(inp, "w") as inp_f, open(out, 'w'):
 #             inp_f.write(case.inp)
@@ -203,7 +206,6 @@ class ValidCase(Case):
 
 class ValidGroup(Group, ABC):
     def _run_case(self, case: ValidCase, inp: Path, out: Path):
-
         with open(inp, "w") as inp_f:
             inp_f.write(str(case))
 
@@ -211,12 +213,15 @@ class ValidGroup(Group, ABC):
         with open(out) as user_output_file:
             user_output = list(map(lambda x: x.rstrip() if x.rstrip() == "NaN" \
                 else int(x), user_output_file.readlines()))
-        return user_output == case.correct_answer 
+        if user_output != case.correct_answer:
+            raise ErrorExc
+
 
 class RandomTests(ValidGroup):
     """
     Contains randomly generated tests, for details: check generate.py 
     """
+
     @property
     def name(self):
         return "Random Tests"
@@ -236,6 +241,7 @@ class MainTestGroup(ValidGroup):
             RandomTests,
             # ReadableTests,
         ]
+
 
 # Error handling
 class InvalidParamCase(ValidCase):
@@ -273,7 +279,6 @@ class InvalidParams(Group, ABC):
             # InvalidParamCase(3, [1, 10, 100], True, DataFlag.INT),
             # InvalidParamCase(4, [1, 10, 100], True, DataFlag.INT)
         ]
-
 
 # class CantFindFile(ReadableTests):
 #     @property
