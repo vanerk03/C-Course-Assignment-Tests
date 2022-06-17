@@ -201,7 +201,17 @@ class ValidCase(Case):
         self.correct_answer = solve(data)
 
     def __str__(self):
-        return "\n".join(map(str, self.data))
+        res = []
+        for x in self.data:
+            if type(x) == int:
+                if x < 0:
+                    res.append(f"_{abs(x)}")
+                else:
+                    res.append(str(x))
+            else:
+                res.append(x)
+                
+        return "\n".join(res)
 
 
 class ValidGroup(Group, ABC):
@@ -227,7 +237,7 @@ class RandomTests(ValidGroup):
         return "Random Tests"
 
     def load(self):
-        self.entities = [generate_case(10, 4) for _ in range(100)]
+        self.entities = [generate_case(2, 2) for _ in range(100)]
 
 
 @is_main_group

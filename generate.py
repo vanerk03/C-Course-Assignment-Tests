@@ -50,10 +50,10 @@ table = {
     "+": Operation(2, lambda x, y: x + y),
     "-": Operation(2, lambda x, y: x - y),
     "*": Operation(2, lambda x, y: x * y),
-    "/": Operation(2, lambda x, y: x // y),
-    "%": Operation(2, lambda x, y: x % y),
+    # "/": Operation(2, lambda x, y: x // y),
+    # "%": Operation(2, lambda x, y: x % y),
 
-    "~": Operation(1, lambda x: int(sqrt(x))),
+    # "~": Operation(1, lambda x: int(sqrt(x))),
     "_": Operation(1, lambda x: -x),
 
     "<":  Operation(2, lambda x, y: int(x < y)),
@@ -118,3 +118,5 @@ def solve(lst: list) -> int:
         else:
             stack.append(x)
     return list(stack)
+
+# print(solve([26, -62, "+"]))
