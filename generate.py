@@ -12,7 +12,6 @@ cf grammar transitions
 
 1 -> number
 """
-
 from collections import namedtuple, deque
 from time import time
 from collections import namedtuple
@@ -21,19 +20,21 @@ from math import sqrt
 
 
 Operation = namedtuple("Operation", ["arity", "oper"])
-class NaN(int):
+
+
+class NaN:
     def __ne__(self, __o: object) -> bool:
         return True
 
     def __eq__(self, __o: object) -> bool:
         return False
-    
+
     def __ge__(self, __x: int) -> bool:
         return False
 
     def __le__(self, __x: int) -> bool:
         return False
-    
+
     def __lt__(self, __x: int) -> bool:
         return False
 
@@ -43,18 +44,55 @@ class NaN(int):
     def __str__(self) -> str:
         return "NaN"
 
-def factory(x, y, func):
-    return NaN() if type(x) == NaN or type(y) == NaN else func(x, y)
+
+NAN = NaN()
+
+def csqrt(x: int):
+    if x < 0:
+        return NAN
+    else:
+        return int(sqrt(x))
+
+# def factory(x, y, func):
+#     return NAN if type(x) == NaN or type(y) == NaN else func(x, y)
+
+
+def factory(func):
+    """returns function that returns NaN if one of the given arguments is NaN"""
+    def wrapper(*args):
+        for x in args:
+            if type(x) == NaN:
+                return NAN
+        return func(*args)
+    return wrapper
+
+# TODO: add cdivision
+
+
+def cdiv(x: int, y: int):
+    if y == 0:
+        return NAN
+    return int(x / y)
+
+
+def cmod(x: int, y: int):
+    if y == 0:
+        return NAN
+
+    k = cdiv(x, y)
+    return x - y * k
+
 
 table = {
-    "+": Operation(2, lambda x, y: x + y),
-    "-": Operation(2, lambda x, y: x - y),
-    "*": Operation(2, lambda x, y: x * y),
-    # "/": Operation(2, lambda x, y: x // y),
-    # "%": Operation(2, lambda x, y: x % y),
+    "+": Operation(2, factory(lambda x, y: x + y)),
+    "-": Operation(2, factory(lambda x, y: x - y)),
+    "*": Operation(2, factory(lambda x, y: x * y)),
 
-    # "~": Operation(1, lambda x: int(sqrt(x))),
-    "_": Operation(1, lambda x: -x),
+    "/": Operation(2, factory(cdiv)),
+    "%": Operation(2, factory(cmod)),
+
+    "~": Operation(1, factory(csqrt)),
+    "_": Operation(1, factory(lambda x: -x)),
 
     "<":  Operation(2, lambda x, y: int(x < y)),
     "<=": Operation(2, lambda x, y: int(x <= y)),
@@ -103,7 +141,7 @@ def generate_element(min_digits: int, max_digits: int) -> int:
     return random.randint(-10 ** min_digits, 10 ** max_digits)
 
 
-def solve(lst: list) -> int:
+def solve(lst: list) -> list:
     stack = deque()
     for x in lst:
         if type(x) == str:
@@ -111,12 +149,13 @@ def solve(lst: list) -> int:
             tmp = []
             for _ in range(arity):
                 tmp.append(stack.pop())
-            try:
-                stack.append(oper(*reversed(tmp)))
-            except (ValueError, ZeroDivisionError):
-                stack.append(NaN()) 
+            
+            stack.append(oper(*reversed(tmp)))
         else:
             stack.append(x)
-    return list(stack)
+    return [str(x) if type(x) == NaN else x for x in stack]
 
-# print(solve([26, -62, "+"]))
+# dbg
+if __name__ == "__main__":
+    print(solve([37, 0, "/"]))
+    # pass

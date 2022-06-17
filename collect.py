@@ -7,7 +7,7 @@ from pathlib import Path
 
 import color_log
 from colorama import Fore
-from generate import generate_data, solve
+from generate import generate_data, solve, NAN
 
 main_name = "All tests"
 
@@ -136,69 +136,13 @@ Personal classes
 no_error = False
 
 
-# Readable tests
-class SolvedCase(Case):
-    def __init__(self, inp: str, out: str):
-        self.inp = inp
-        self.out = out
-
-
-# @is_main_group
-# class ReadableTests(Group):
-#     @property
-#     def name(self):
-#         return "Readable Tests"
-
-#     def _run_case(self, case: SolvedCase, inp: Path, out: Path):
-#         with open(inp, "w") as inp_f, open(out, 'w'):
-#             inp_f.write(case.inp)
-
-#         subprocess.call([program_name, str(inp), str(out)])
-
-#         with open(out, 'r') as out_f:
-#             ans = out_f.read()
-
-#         # correct output
-#         ans = ans.strip().split('\n')
-#         if len(ans[0]) == 2:
-#             if ans[0] != '-' or not ans[1].isdigit():
-#                 raise ErrorFormatExc('first symbol is incorrect')
-#         elif len(ans[0]) != 1:
-#             raise ErrorFormatExc('first symbol is incorrect')
-#         elif not ans[0].isdigit():
-#             raise ErrorFormatExc('first symbol is incorrect')
-
-#         for i in ans[1:]:
-#             if len(i) != 1:
-#                 raise ErrorFormatExc('string has more one symbol')
-#             if not i.isdigit():
-#                 raise ErrorFormatExc('symbol in string is not digit')
-
-#         if case.out == ''.join(ans):
-#             return True
-#         else:
-#             raise ErrorExc
-
-#     def load(self):
-#         self.entities = [
-#             SolvedCase(convert_data_to_string([232, '+', 6, '-', -1]), '12'),
-#             SolvedCase(convert_data_to_string([1, '+', 1]), '2'),
-#             SolvedCase(convert_data_to_string([1, '-', 1]), '0'),
-#             SolvedCase(convert_data_to_string([1, '+', 1, '-', -1]), '3'),
-#             SolvedCase(convert_data_to_string([2, '*', 3]), '6'),
-#             SolvedCase(convert_data_to_string([2, '*', 0]), '0'),
-#             SolvedCase(convert_data_to_string([0, '*', 0]), '0'),
-#             SolvedCase(convert_data_to_string([0, '/', 1]), '0'),
-#             SolvedCase(convert_data_to_string([2, '/', 1]), '2'),
-#             SolvedCase(convert_data_to_string([2, '/', 2]), '1'),
-#             # todo: need more tests
-#         ]
-
-
 class ValidCase(Case):
-    def __init__(self, data: list[int | str]):
+    def __init__(self, data: list, ans: list = None):
         self.data = data
-        self.correct_answer = solve(data)
+        if ans is None:
+            self.correct_answer = solve(data)
+        else:
+            self.correct_answer = ans
 
     def __str__(self):
         return "\n".join(map(str, self.data))
@@ -217,17 +161,63 @@ class ValidGroup(Group, ABC):
             raise ErrorExc
 
 
-class RandomTests(ValidGroup):
-    """
-    Contains randomly generated tests, for details: check generate.py 
-    """
-
+class ReadableTests(ValidGroup):
     @property
     def name(self):
-        return "Random Tests"
+        return "Readable Tests"
 
     def load(self):
-        self.entities = [generate_case(2, 2) for _ in range(100)]
+        self.entities = [
+            ValidCase([1, 6, '-'], [-5]),
+            ValidCase([2, 2, '+'], [4]),
+            ValidCase([4, 2, '/'], [2]),
+            ValidCase([6, 6, '+'], [12]),
+            ValidCase([6, 0, '/'], ["NaN"]),
+            ValidCase([-100, '~'], ["NaN"]),
+        ]
+
+class SmallTests(ValidGroup):
+    @property
+    def name(self):
+        return "Small Tests"
+
+    def load(self):
+        self.entities = [generate_case(2, 2) for _ in range(200)]
+
+class BigTests(ValidGroup):
+    @property
+    def name(self):
+        return "Big Tests"
+
+    def load(self):
+        self.entities = [generate_case(5, 10) for _ in range(10)]
+
+
+class LargeTests(ValidGroup):
+    @property
+    def name(self):
+        return "Large Tests"
+
+    def load(self):
+        self.entities = [generate_case(15, 4) for _ in range(10)]
+
+
+class TremendousTests(ValidGroup):
+    @property
+    def name(self):
+        return "Tremendous Tests"
+
+    def load(self):
+        self.entities = [generate_case(50, 5) for _ in range(10)]
+
+
+class VerenyaTests(ValidGroup):
+    @property
+    def name(self):
+        return "Verenya Tests"
+
+    def load(self):
+        self.entities = [generate_case(50, 30) for _ in range(3)]
 
 
 @is_main_group
@@ -238,8 +228,12 @@ class MainTestGroup(ValidGroup):
 
     def load(self):
         self.entities = [
-            RandomTests,
-            # ReadableTests,
+            ReadableTests,
+            SmallTests,
+            BigTests,
+            LargeTests,
+            TremendousTests,
+            VerenyaTests
         ]
 
 
