@@ -96,13 +96,13 @@ class Group(ABC):
                     exit()
 
                 except ErrorFormatExc as e:
-                    print(color_log.RED(f"FAILED format exception \nComment: {e.message}"))
+                    print(color_log.RED(
+                        f"FAILED format exception \nComment: {e.message}"))
                     print(color_log.RED(f"Test is saved in {inp} / {out}"))
                     exit()
 
-
             elif issubclass(ent, Group):
-                _ent = ent(level = self.level + 1)
+                _ent = ent(level=self.level + 1)
                 _ent.load()
                 _ent.run()
 
@@ -201,17 +201,7 @@ class ValidCase(Case):
         self.correct_answer = solve(data)
 
     def __str__(self):
-        res = []
-        for x in self.data:
-            if type(x) == int:
-                if x < 0:
-                    res.append(f"_{abs(x)}")
-                else:
-                    res.append(str(x))
-            else:
-                res.append(x)
-                
-        return "\n".join(res)
+        return "\n".join(map(str, self.data))
 
 
 class ValidGroup(Group, ABC):
@@ -221,8 +211,8 @@ class ValidGroup(Group, ABC):
 
         subprocess.call([program_name, str(inp), str(out)])
         with open(out) as user_output_file:
-            user_output = list(map(lambda x: x.rstrip() if x.rstrip() == "NaN" \
-                else int(x), user_output_file.readlines()))
+            user_output = list(map(lambda x: x.rstrip() if x.rstrip() == "NaN"
+                                   else int(x), user_output_file.readlines()))
         if user_output != case.correct_answer:
             raise ErrorExc
 
@@ -274,9 +264,9 @@ class InvalidParams(Group, ABC):
         for i in range(case.count):
             args.append("qweasdqweasd")
 
-        print(Fore.LIGHTBLACK_EX, end = '')
+        print(Fore.LIGHTBLACK_EX, end='')
         out = subprocess.call(args)
-        print(Fore.RESET, end = '')
+        print(Fore.RESET, end='')
         if out != 4:
             print(color_log.RED(
                 f"Excepted return code 4, on command {' '.join(args)}"))
